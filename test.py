@@ -1,3 +1,5 @@
+import ast
+
 test = {
     "a": 5,
     "b": 9,
@@ -14,3 +16,8 @@ for item in test:
         keep[item] = 8
 
 print (keep)
+
+
+class funcvisit (ast.NodeVisitor):
+    def visit_peter(self, node):
+        return
