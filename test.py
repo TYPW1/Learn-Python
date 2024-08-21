@@ -1,4 +1,4 @@
-import ast
+"""import ast
 
 test = {
     "a": 5,
@@ -21,3 +21,17 @@ print (keep)
 class funcvisit (ast.NodeVisitor):
     def visit_peter(self, node):
         return
+"""
+
+enemies = 1
+
+
+def increase_enemies():
+    global enemies
+    enemies = 1
+    print(f"enemies inside function {enemies}")
+    return enemies + 1
+
+
+print(increase_enemies())
+print(f"enemies ouside function {enemies}")
