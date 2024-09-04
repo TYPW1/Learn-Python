@@ -23,6 +23,6 @@ def parse_elements(file_path):
     }
 
 # Example usage:
-file_path = "test.py"  # Replace with your Python file
+file_path = "Beginner/test.py"  # Replace with your Python file
 elements = parse_elements(file_path)
 print(json.dumps(elements, indent=4))
