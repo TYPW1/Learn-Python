@@ -10,7 +10,7 @@ def calculate_circle_area(radius):
 def calculate_circle_circumference(radius):
     return 2 * math.pi * radius
 
-radius = 7
+radius = 7 * 3
 print("Area:", calculate_circle_area(radius))
 # print("Circumference:", calculate_circle_circumference(radius))
 """
