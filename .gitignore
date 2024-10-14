@@ -1,0 +1,35 @@
+# Ignore virtual environments
+.venv/
+env/
+ENV/
+
+# Ignore Python-specific files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Ignore environment variables
+.env
+
+# Ignore log files
+*.log
+app.log
+
+# Ignore output files
+*.json
+
+# Ignore PyCharm specific files (if using PyCharm)
+.idea/
+*.iml
+
+# Ignore temporary or backup files
+*.bak
+*.swp
+
+# Ignore compiled code
+*.so
+*.dll
+*.dylib
+
+# Ignore any other temporary or generated files
