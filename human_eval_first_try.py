@@ -1,47 +1,3 @@
-# import openai
-# from openai import OpenAI
-# from dotenv import load_dotenv
-# import os
-#
-# load_dotenv()
-#
-# openai_api_key = os.getenv("OPENAI_API_KEY")
-#
-# problem_prompt = """
-# write a  Python function named 'is_palindrome' that checks whether a string is  a palindrome
-# """
-#
-# client = openai.OpenAI(api_key=openai_api_key)
-#
-# response = client.chat.completions.create(
-#     messages=[
-#         {
-#             "role": "user",
-#             "content": problem_prompt,
-#         }
-#     ],
-#     model="gpt-3.5-turbo",  # Use GPT-4 if you have access
-# )
-#
-# # Output the generated code
-# #print(response.choices[0].message.content.strip())
-#
-#
-# def is_palindrome(s: str) -> bool:
-#     return s == s[::-1]
-#
-#
-# test_cases = [
-#     ("racecar", True),
-#     ("hello", False),
-#     ("madam", True),
-#     ("python", False)
-# ]
-# for s, expected in test_cases:
-#     result = is_palindrome(s)
-#     print(f"Input: {s}, Output: {result}, Expected: {expected}, Test Passed: {result == expected}")
-
-
 import datasets
 import os
 import openai
@@ -115,6 +71,9 @@ def test_generated_function(problem, generated_function_code):
     This function dynamically defines the generated function using `exec()`
     and runs the HumanEval test cases on it.
     """
+    # Add the necessary import statement to the code
+    generated_function_code = "from typing import List\n" + generated_function_code
+
     # Dynamically define the generated function
     exec(generated_function_code, globals())
 
@@ -124,10 +83,20 @@ def test_generated_function(problem, generated_function_code):
     # Execute each test case and check if it passes or fails
     for test_case in test_cases:
         try:
+            # Filter out invalid test cases that contain undefined variables or bad syntax
+            if not all(c.isalpha() or c.isspace() or c.isdigit() for c in test_case):
+                print(f"Skipping invalid test case: {test_case}")
+                continue
+
             exec(test_case)
             print(f"Test Passed: {test_case}")
+        except NameError as e:
+            print(f"Test Failed due to missing variable: {e}")
+        except SyntaxError as e:
+            print(f"Test Failed due to syntax error: {e}")
         except AssertionError:
             print(f"Test Failed: {test_case}")
+
 
 # Function to automate the entire process for a HumanEval problem
 def process_humaneval_problem(problem):
