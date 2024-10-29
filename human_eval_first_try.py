@@ -43,7 +43,7 @@ def extract_function_code(generated_output):
     It uses a regex pattern to capture the function definition and body,
     and removes comments and docstrings.
     """
-    # Step 1: Extract the function using regex (detect def and extract the block until it ends)
+    # Extract the function using regex (detect def and extract the block until it ends)
     function_code_match = re.search(r"```python(.*?)```", generated_output, re.DOTALL)
 
     if function_code_match:
