@@ -43,7 +43,7 @@ turtle.colormode(255)
 
 num = 1
 for j in range (10):
-
+    num = num + num
     for i in range(10):
         tim.penup()
         tim.forward(50)
@@ -51,7 +51,7 @@ for j in range (10):
     tim.setheading(90)
     tim.forward(50)
     tim.dot(25, random.choice(get_colours()))
-    tim.setheading(90**num + num)
+    tim.setheading(90**num)
 
 #
 # tim.forward(50)
