@@ -1,5 +1,5 @@
 import colorgram
-from turtle import Turtle
+from turtle import Turtle, Screen
 import random
 import turtle
 colors = colorgram.extract("image.jpg",100)
@@ -12,59 +12,31 @@ def get_colours():
         g = colors[i].rgb.g
         b = colors[i].rgb.b
         c = (r,g,b)
-        colours.append(c)
+        if r < 200 or g < 200 or b < 200:  # Adjust threshold as needed
+            c = (r, g, b)
+            colours.append(c)
+
     return colours
 
 
 
+
 tim = Turtle()
-tim.shape("turtle")
-tim.speed(10)
+tim.hideturtle()
+tim.speed("fastest")
 turtle.colormode(255)
 
-# tim.penup()
-# tim.forward(50)
-# tim.dot(25, random.choice(get_colours()))
-# tim.forward(50)
-# tim.dot(25, random.choice(get_colours()))
-# tim.forward(50)
-# tim.dot(25, random.choice(get_colours()))
-# tim.forward(50)
-# tim.dot(25, random.choice(get_colours()))
-# tim.forward(50)
-# tim.dot(25, random.choice(get_colours()))
-# tim.setheading(90)
 
-# numi = 1
-# for o in range(10):
-#     numi= numi + numi
-#
-#     print(numi)
-
-num = 1
 for j in range (10):
-    num = num + num
-    for i in range(10):
+    for k in range(10):
         tim.penup()
         tim.forward(50)
         tim.dot(25, random.choice(get_colours()))
+    tim.setheading(180)
+    tim.forward(500)
     tim.setheading(90)
     tim.forward(50)
-    tim.dot(25, random.choice(get_colours()))
-    tim.setheading(90**num)
+    tim.setheading(0)
 
-#
-# tim.forward(50)
-# tim.dot(25, random.choice(get_colours()))
-# tim.forward(50)
-# tim.dot(25, random.choice(get_colours()))
-# tim.forward(50)
-# tim.dot(25, random.choice(get_colours()))
-# tim.forward(50)
-# tim.dot(25, random.choice(get_colours()))
-# tim.forward(50)
-# tim.dot(25, random.choice(get_colours()))
-# tim.setheading(90)
-# tim.forward(50)
-# tim.dot(25, random.choice(get_colours()))
-# tim.setheading(90**4)
+screen = Screen()
+screen.exitonclick()

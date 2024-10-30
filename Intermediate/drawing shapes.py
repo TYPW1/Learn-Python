@@ -88,7 +88,7 @@ tim.shape("turtle")
 #     return color
 # tim.color(randomcolor())
 
-
+tim.setheading(0)
 
 screen = Screen()
 screen.exitonclick()
