@@ -1,33 +1,20 @@
-import tokenize
-from io import BytesIO
-import ast
+class Rectangle:
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
 
-code= """
-class test():
-    def greet(name):
-        return(f"Hello {name}!")
+    def area(self):
+        return self.width * self.height * self.height
 
-print(greet("World"))
-"""
-
-"""tokens = tokenize.tokenize(BytesIO(code.encode("utf-8")).readline)
-for token in tokens:
-    print(token)"""
-
-""""
-parsed_code = ast.parse(code)
-"""
+    def perimeter(self):
+        return 2 * (self.width + self.height)
 
 
+def ring(self):
+    return 2 * (self.width + self.height)
 
-class FunctionNameExtractor (ast.NodeVisitor):
-    def visit_FunctionDef(self, node):
-        print(f"Found function: {node.name}")
-        self.generic_visit(node)
 
-parsed_code = ast.parse(code)
-
-extractor = FunctionNameExtractor()
-extractor.visit(parsed_code)
-
-print(ast.dump(parsed_code, indent = 4))
+rect = Rectangle(10, 5)
+radius = 7 * 5
+print("Area:", rect.area())
+print("Perimeter:", rect.perimeter())
