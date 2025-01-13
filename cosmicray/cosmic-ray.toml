@@ -1,13 +1,11 @@
 [cosmic-ray]
-module-path = "./"
+module-path = "HumanEval_152.py"
 python-version = "3.8"
-test-command = "python -m unittest discover -s tests"
-timeout = 30
-operator = "core/ReplaceUnaryOperator"
-
-[cosmic-ray.test-runner]
-name = "unittest"
-args = ["test_calculator"]
+test-command = "python -m unittest discover -s  test_HumanEval_152"
+timeout = 10
 
 [cosmic-ray.distributor]
 name = "local"
+
+[cosmic-ray.python]
+pythonpath = ["."]
