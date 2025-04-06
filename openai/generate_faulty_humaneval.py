@@ -10,74 +10,89 @@ from dotenv import load_dotenv
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-def analyze_code(prompt, test_code):
+
+def analyze_code(prompt):
     """
-    Generates code for the given prompt using GPT-4, including test cases in the prompt.
+    Generates faulty code for the given prompt using GPT-4.
     """
     try:
+        # Generate code with intentional faults using GPT-4
         response = client.chat.completions.create(
             model="gpt-4",
             messages=[
-                {"role": "system", "content": "You are a Python developer. Solve the task but include common mistakes or inefficient approaches."},
-                {"role": "user", "content": f"{prompt}\nHere are the test cases the function must pass:\n{test_code}"}
+                {"role": "system",
+                 "content": "You are a beginner python developper make beginner's mistakes that will fail any test applied to it. do not use any modules."},
+                {"role": "user", "content": f"{prompt}\nPlease generate the code for the given task."}
             ],
             temperature=1.0
         )
+
+        # Extract the generated code from the response
         content = response.choices[0].message.content
-        code_lines = []
-        inside_code_block = False
-        for line in content.splitlines():
-            if line.strip().startswith("```"):
-                inside_code_block = not inside_code_block
-            elif inside_code_block:
-                code_lines.append(line)
-        return "\n".join(code_lines) if code_lines else content
+
+        return content  # Return the generated faulty code
+
     except Exception as e:
-        return str(e)
+        return f"An error occurred: {str(e)}"
+
+
+def extract_code(text):
+    """
+    Extracts the Python code between triple backticks from a string.
+
+    Args:
+        text (str): The input string containing the code.
+
+    Returns:
+        str: The extracted Python code.
+    """
+    # Use a regular expression to find the code block between triple backticks
+    code_match = re.search(r'```python\n(.*?)```', text, re.DOTALL)
+
+    if code_match:
+        # Return the code inside the backticks
+        return code_match.group(1).strip()
+    else:
+        return "No code block found."
 
 def validate_code(generated_code, test_code):
     """
     Validates the generated code against the provided test cases.
+    Ensures that all necessary modules are imported.
     """
     try:
-        # Ensure the generated code is syntactically valid
-        ast.parse(generated_code)
+        # Parse the code to check for imports and usage of external modules
+        tree = ast.parse(generated_code)
 
-        # Execute the generated code and test cases
+        # Find all module imports in the code (both regular imports and from imports)
+        imports = [node.name for node in ast.walk(tree) if isinstance(node, ast.Import) or isinstance(node, ast.ImportFrom)]
+
+        # Check for any used modules in the code
+        used_modules = set()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load):
+                used_modules.add(node.id)
+
+        # Compare used modules with imported modules to find any missing imports
+        missing_imports = used_modules - set(imports)
+
+        if missing_imports:
+            raise ValueError(f"These modules are used but not imported: {', '.join(missing_imports)}")
+
+        # Ensure the generated code is syntactically valid
         exec(generated_code, globals())
         exec(test_code, globals())
         return True  # Code passed the test suite
+
     except SyntaxError as e:
         print(f"Syntax error in code: {e}")
         return False  # Invalid syntax
+    except ValueError as ve:
+        print(f"Validation failed: {ve}")
+        return False  # Missing import(s)
     except Exception as e:
         print(f"Validation failed: {e}")
         return False  # Code failed the test suite
-
-
-def inject_faults(code):
-    """
-    Introduces random faults into the generated code.
-    """
-    faults = [
-        lambda x: re.sub(r"\+", "-", x),  # Replace '+' with '-'
-        lambda x: re.sub(r"==", "!=", x),  # Replace '==' with '!='
-        lambda x: re.sub(r"return\b", "# return", x),  # Comment out return statements
-        lambda x: re.sub(r"range\((.*?)\)", r"range(\1 + 1)", x),  # Off-by-one error
-        lambda x: re.sub(r"abs\((.*?)\)", r"\1", x),  # Remove abs()
-        lambda x: re.sub(r":\n", ":\n    pass\n", x, 1),  # Add unnecessary `pass` statements
-    ]
-
-    # Apply a random fault
-    faulty_code = random.choice(faults)(code)
-
-    # Ensure the modified code is syntactically valid
-    try:
-        ast.parse(faulty_code)
-        return faulty_code
-    except SyntaxError:
-        print("Fault injection created invalid syntax, skipping.")
-        return code  # Return the original code if fault injection fails
 
 
 def save_faulty_version(code, task_id, version):
@@ -104,9 +119,11 @@ def main():
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     for idx, sample in enumerate(dataset):
+        if idx >= 3:
+            break
         task_id = sample["task_id"]
-        if task_id != "HumanEval/152":  # Replace with your desired task ID
-            continue
+        # if task_id != "HumanEval/0":  # Replace with your desired task ID
+        #     continue
         prompt = sample["prompt"]
         test_code = sample["test"]
 
@@ -114,11 +131,11 @@ def main():
 
         # Generate multiple variations, but stop after saving one faulty version
         for i in range(10):  # Generate up to 10 variations
-            generated_code = analyze_code(prompt, test_code)
+            generated_code = analyze_code(prompt)
             print(f"\nGenerated Code {i + 1} for {task_id}:\n{generated_code}")
 
             # Inject additional faults into the generated code
-            faulty_code = inject_faults(generated_code)
+            faulty_code = extract_code(generated_code)
 
             # Validate the faulty version
             if not validate_code(faulty_code, test_code):  # Save only if it fails
