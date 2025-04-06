@@ -9,7 +9,7 @@
     <content url="file://$MODULE_DIR$/../cbnt" />
     <content url="file://$MODULE_DIR$/../commons" />
     <content url="file://$MODULE_DIR$/../mBERTc" />
-    <orderEntry type="jdk" jdkName="Python 3.10 (Learn-Python)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.12 (Learn-Python)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>

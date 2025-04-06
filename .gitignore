@@ -10,7 +10,7 @@ __pycache__/
 *.pyd
 
 # Ignore environment variables
-.env
+summarizer/.env
 
 # Ignore log files
 *.log
