@@ -12,7 +12,7 @@ class Scoreboard(Turtle):
         self.update_scoreboard()
 
     def update_scoreboard(self):
-        self.write(arg=f"Score: {self.score}", move=False, align="center", font=("Arial", 10, "bold"))
+        self.write(arg=f"Score: {self.score}", move=False, align="center", font=("Courrier", 10, "bold"))
 
     def count(self):
         self.score += 1
