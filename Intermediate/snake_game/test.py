@@ -1,21 +1,5 @@
-class Animal:
-    def __init__(self):
-        self.num_eyes = 2
+bread = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+loaf = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+print(bread[::-1])
 
-    def breathe(self):
-        print("Inhale, Exhale")
-
-class Fish(Animal):
-    def __init__(self):
-        super().__init__()
-
-    def breathe(self):
-        super().breathe()
-        print("doing this underwater")
-
-    def swim(self):
-        print("moving in water")
-
-nemo = Fish()
-nemo.swim()
-nemo.breathe()
+print(loaf[:3:-2])
