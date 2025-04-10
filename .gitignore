@@ -10,11 +10,11 @@ __pycache__/
 *.pyd
 
 # Ignore environment variables
-summarizer/.env
+Projects/summarizer/.env
 
 # Ignore log files
 *.log
-app.log
+Data/app.log
 
 # Ignore output files
 *.json

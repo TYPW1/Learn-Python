@@ -7,6 +7,6 @@ def parse_file(file_path):
     return ast.dump(tree, indent=4)
 
 # Example usage
-file_path = 'example.py'
+file_path = '../Standalone/example.py'
 parsed_file = parse_file(file_path)
 print(parsed_file)
