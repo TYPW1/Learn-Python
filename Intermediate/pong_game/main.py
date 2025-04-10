@@ -29,10 +29,12 @@ screen.tracer(0)  # Turns off the screen updates for better performance
 
 # Listen for key presses
 screen.listen()
-screen.onkey(paddle1.go_up, "Up")
-screen.onkey(paddle1.go_down, "Down")
-screen.onkey(paddle2.go_up, "w")
-screen.onkey(paddle2.go_down, "s")
+
+# Bind the paddle movement to the key presses
+screen.onkeypress(paddle1.go_up, "Up")
+screen.onkeypress(paddle1.go_down, "Down")
+screen.onkeypress(paddle2.go_up, "w")
+screen.onkeypress(paddle2.go_down, "s")
 
 game_is_on = True
 # Main game loop
