@@ -1,11 +1,21 @@
+import time
 from turtle import Screen
 from paddle import Paddle
+from ball import Ball
+from scoreboard import Scoreboard
 
+# Create the screen
 screen = Screen()
 
 # Create the paddles
 paddle1 = Paddle((350, 0))
 paddle2 = Paddle((-350, 0))
+
+#create the ball
+ball = Ball()
+
+# Create the scoreboard
+scoreboard = Scoreboard()
 
 # Set the speed of the paddles
 paddle1.speed(0)
@@ -24,14 +34,32 @@ screen.onkey(paddle1.go_down, "Down")
 screen.onkey(paddle2.go_up, "w")
 screen.onkey(paddle2.go_down, "s")
 
-
+game_is_on = True
 # Main game loop
-while True:
+while game_is_on:
+    time.sleep(ball.move_speed)  # Add a small delay to control the speed of the game
     screen.update()
-    # Check for collisions with the wall
-    if paddle1.ycor() > 290:
-        paddle1.sety(290)
-    elif paddle1.ycor() < -290:
-        paddle1.sety(-290)
 
+    # Move the ball
+    ball.move()
+
+    # Check for collisions with the wall
+    if ball.ycor() > 280 or ball.ycor() < -280:
+        ball.bounce_y()
+
+    # Check for collisions with the paddles
+    if ball.distance(paddle1) < 50 and ball.xcor() > 320 or ball.distance(paddle2) < 50 and ball.xcor() < -320:
+        ball.bounce_x()
+
+    # Check for ball out of bounds
+    if ball.xcor() > 380:
+        ball.goto(0, 0)
+        ball.bounce_x()
+        scoreboard.player1_score()
+
+
+    if ball.xcor() < -380:
+        ball.goto(0, 0)
+        ball.bounce_x()
+        scoreboard.player2_score()
 screen.exitonclick()
