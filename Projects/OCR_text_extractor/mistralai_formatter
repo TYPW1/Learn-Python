@@ -1,0 +1,34 @@
+from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer
+import torch
+import os
+from dotenv import load_dotenv
+from huggingface_hub import login
+
+# Load environment variables from .env file
+load_dotenv()
+# Login to Hugging Face Hub using the token from the environment variable
+login(token=os.getenv("HF_TOKEN"))
+
+# Load the model and tokenizer
+model_id = "mistralai/Mistral-7B-Instruct-v0.2"
+tokenizer = AutoTokenizer.from_pretrained(model_id)
+model = AutoModelForCausalLM.from_pretrained(model_id, device_map="auto", torch_dtype=torch.float16)
+
+#create a pipeline for text generation
+pipe = pipeline(
+    "text-generation",
+    model=model,
+    tokenizer=tokenizer,
+    device_map="auto",
+    torch_dtype=torch.float16,
+)	
+
+#example OCR Output
+ocr_output = """Name: John Doe\nDestination:Wuppertal, Germany\nDeparture: 04-03-2025"""
+
+#prompt for the model
+prompt = f"Extract this into JSON with fields 'name', 'travel', and 'date':\n{ocr_output}\n\nJSON:"
+
+#generate the output
+output = pipe(prompt, max_length=100, num_return_sequences=1)[0]['generated_text']
+print(output)
