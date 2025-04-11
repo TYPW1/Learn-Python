@@ -33,3 +33,4 @@ Data/app.log
 *.dylib
 
 # Ignore any other temporary or generated files
+".env" 
