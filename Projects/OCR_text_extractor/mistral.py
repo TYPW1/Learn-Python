@@ -49,7 +49,7 @@ def format_ocr_text_to_json(text):
     # Extract only the JSON part from the output
     json_start = output.find("{")
     json_end = output.rfind("}") + 1
-    json_str = output[json_start:json_end]
+    json_string = output[json_start:json_end]
                                             
-    return json_str
+    return json_string
 
