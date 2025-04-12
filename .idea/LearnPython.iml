@@ -5,6 +5,7 @@
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/.venv" />
       <excludeFolder url="file://$MODULE_DIR$/venv" />
+      <excludeFolder url="file://$MODULE_DIR$/.idea/easycode" />
     </content>
     <content url="file://$MODULE_DIR$/../cbnt" />
     <content url="file://$MODULE_DIR$/../commons" />

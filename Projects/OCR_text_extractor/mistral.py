@@ -2,7 +2,6 @@ from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer
 import os
 from dotenv import load_dotenv
 from huggingface_hub import login
-from ocr_utils import extract_text_from_first_page
 
 # === Load environment variables ===
 load_dotenv()
