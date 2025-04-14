@@ -8,7 +8,7 @@ fillmask = pipeline(
 
 # Example usage
 code = """if (x > 0) {
-    y [mask] x - 1;
+    y [MASK] x - 1;
 } else {
     y = x + 1;
 }"""
