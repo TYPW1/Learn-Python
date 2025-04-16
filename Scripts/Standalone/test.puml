@@ -1,0 +1,67 @@
+@startuml ComponentDiagram
+
+!define themeColor #4B8BBE
+skinparam backgroundColor #FFFFFF
+skinparam component {
+  BackgroundColor themeColor
+  BorderColor #333333
+  ArrowColor #333333
+  FontSize 14
+}
+
+title Component Diagram: Mutation Testing Platform
+
+component "Streamlit UI" as streamlit {
+  component "File Upload" as upload
+  component "Mutator Selection" as select
+  component "Results Dashboard" as dashboard
+}
+
+component "Mutation Engine" as mutation_engine {
+  component "AST Parser" as ast_parser
+  component "Mutant Generator" as mutant_gen
+  component "Metrics Comparator" as metrics
+}
+
+component "CodeBERT Client" as codebert {
+  component "Masking Module" as masking
+  component "Prediction Module" as prediction
+}
+
+component "Jenkins QA" as jenkins {
+  component "Test Runner" as test_runner
+  component "Report Generator" as report
+}
+
+database "HumanEval Dataset" as humaneval
+
+' Connections
+streamlit --> mutation_engine : "Python File\n+ Mutator Config"
+mutation_engine --> codebert : "Masked Code Snippets"
+codebert --> mutation_engine : "Predicted Mutants"
+mutation_engine --> jenkins : "Mutants + Test Cases"
+jenkins --> streamlit : "QA Test Results"
+mutation_engine --> humaneval : "Read/Compare"
+mutation_engine --> streamlit : "Metrics + Mutants"
+
+' Notes
+note top of streamlit
+  User-friendly interface for:
+  - Uploading Python files
+  - Selecting mutators (operators/methods)
+  - Visualizing results
+end note
+
+note right of codebert
+  Uses cbnt's pre-loaded model for:
+  - Code masking
+  - Mutant prediction
+end note
+
+note left of jenkins
+  Automated QA:
+  - Runs tests on mutants
+  - Generates coverage reports
+end note
+
+@enduml
