@@ -32,5 +32,5 @@ print(phonetic_alphabet)
 user_input = input("Enter a word: ").upper()
 user_input_list = [letter for letter in list(user_input)]
 
-phonetic_list = [phonetic_alphabet[letter] for letter in user_input_list if letter in phonetic_alphabet]
+phonetic_list = [phonetic_alphabet[letter] for letter in user_input_list]
 print(phonetic_list)
