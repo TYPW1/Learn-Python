@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
-    <content url="file://$MODULE_DIR$/../CodeBERT-nt" />
     <content url="file://$MODULE_DIR$">
-      <excludeFolder url="file://$MODULE_DIR$/.venv" />
-      <excludeFolder url="file://$MODULE_DIR$/venv" />
-      <excludeFolder url="file://$MODULE_DIR$/.idea/easycode" />
+      <sourceFolder url="file://$MODULE_DIR$" isTestSource="false" />
     </content>
-    <content url="file://$MODULE_DIR$/../cbnt" />
-    <content url="file://$MODULE_DIR$/../commons" />
-    <content url="file://$MODULE_DIR$/../mBERTc" />
+    <content url="file://$MODULE_DIR$/../cbnt">
+      <sourceFolder url="file://$MODULE_DIR$/../cbnt" isTestSource="false" />
+    </content>
+    <content url="file://$MODULE_DIR$/../commons">
+      <sourceFolder url="file://$MODULE_DIR$/../commons" isTestSource="false" />
+    </content>
     <orderEntry type="jdk" jdkName="Python 3.12 (Learn-Python)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
