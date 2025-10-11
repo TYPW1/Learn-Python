@@ -1,20 +1,34 @@
 import streamlit as st
 from thefuzz import process
+import json
+import os
 
+# --- The filename for our AI's memory ---
+DICTIONARY_FILE = "dictionary.json"
 
-# --- NO AI MODEL NEEDED! ---
+# --- Function to load the AI's brain from a file ---
+def load_dictionary():
+    if os.path.exists(DICTIONARY_FILE):
+        with open(DICTIONARY_FILE, 'r') as f:
+            return json.load(f)
+    # If the file doesn't exist, start with an empty brain
+    return {}
+
+# --- Function to save the AI's brain to a file ---
+def save_dictionary(data):
+    with open(DICTIONARY_FILE, 'w') as f:
+        json.dump(data, f, indent=4)
 
 # --- Helper Functions for Buttons ---
 def set_edit_state(question, answer):
     st.session_state.edit_question = question
     st.session_state.edit_answer = answer
 
-
 def delete_rule(question):
     if question in st.session_state.taught_rules:
         del st.session_state.taught_rules[question]
+        save_dictionary(st.session_state.taught_rules)  # Save after deleting
     st.rerun()
-
 
 # --- The App's Interface ---
 st.title("🧑‍🏫 The AI Classroom 🧠")
@@ -22,7 +36,7 @@ st.write("Teach your AI, manage its memory, and chat with it!")
 
 # --- Initialize session state ---
 if 'taught_rules' not in st.session_state:
-    st.session_state.taught_rules = {}  # The AI's entire brain is here!
+    st.session_state.taught_rules = load_dictionary()  # Load the brain on first run
 if 'history' not in st.session_state:
     st.session_state.history = []
 if 'edit_question' not in st.session_state:
@@ -38,7 +52,7 @@ with st.expander("👉 Click here to teach or edit rules!"):
         value=st.session_state.edit_question,
         key="q_input"
     ).lower()
-
+    
     answer_to_teach = st.text_input(
         "The AI should reply with this:",
         value=st.session_state.edit_answer,
@@ -48,6 +62,7 @@ with st.expander("👉 Click here to teach or edit rules!"):
     if st.button("✅ Save to AI Memory"):
         if question_to_teach and answer_to_teach:
             st.session_state.taught_rules[question_to_teach] = answer_to_teach
+            save_dictionary(st.session_state.taught_rules)  # Save the new knowledge
             st.success("✅ Rule saved!")
             st.session_state.edit_question = ""
             st.session_state.edit_answer = ""
@@ -72,6 +87,7 @@ else:
             st.button("🗑️ Delete", key=f"delete_{question}", on_click=delete_rule, args=(question,))
     st.markdown("---")
 
+
 # --- Section 3: Chat with the AI ---
 st.header("Step 2: Chat with Your AI")
 for message in st.session_state.history:
@@ -85,22 +101,22 @@ if user_input:
         st.markdown(user_input)
 
     cleaned_input = user_input.lower().strip("?!.,")
-
+    
     # --- NEW SIMPLIFIED BRAIN LOGIC ---
-
+    
     # Brain #1: Check for a perfect match first.
     if cleaned_input in st.session_state.taught_rules:
         ai_response = st.session_state.taught_rules[cleaned_input]
         response_source = "🤖 (From my memory - perfect match!)"
-
+    
     # Brain #2: If no perfect match, use fuzzy matching to find the closest one.
     else:
         known_questions = list(st.session_state.taught_rules.keys())
-
+        
         if known_questions:
             # Find the best match from the list of known questions
             best_match, score = process.extractOne(cleaned_input, known_questions)
-
+            
             # We set a "confidence score" of 80. If the match is >= 80%, we use it.
             if score >= 80:
                 ai_response = st.session_state.taught_rules[best_match]
