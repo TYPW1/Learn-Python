@@ -1,20 +1,8 @@
 import streamlit as st
-from transformers import pipeline
-import torch
+from thefuzz import process
 
 
-# Use a cache to load the model only once
-@st.cache_resource
-def load_model():
-    # --- MAJOR UPGRADE: Using Google's Gemma model ---
-    # This is a powerful and knowledgeable model for excellent conversations.
-    model = pipeline(
-        "text-generation",
-        model="google/gemma-2b-it",
-        model_kwargs={"torch_dtype": torch.bfloat16}  # Optimizes for performance
-    )
-    return model
-
+# --- NO AI MODEL NEEDED! ---
 
 # --- Helper Functions for Buttons ---
 def set_edit_state(question, answer):
@@ -32,17 +20,9 @@ def delete_rule(question):
 st.title("🧑‍🏫 The AI Classroom 🧠")
 st.write("Teach your AI, manage its memory, and chat with it!")
 
-# Load the AI model
-try:
-    chatbot = load_model()
-except Exception as e:
-    st.error(f"Error loading AI model: {e}")
-    st.error("This might be due to a missing Hugging Face access token. Please add it to your Streamlit secrets.")
-    st.stop()
-
 # --- Initialize session state ---
 if 'taught_rules' not in st.session_state:
-    st.session_state.taught_rules = {}  # The "Memory Brain"
+    st.session_state.taught_rules = {}  # The AI's entire brain is here!
 if 'history' not in st.session_state:
     st.session_state.history = []
 if 'edit_question' not in st.session_state:
@@ -51,10 +31,10 @@ if 'edit_answer' not in st.session_state:
     st.session_state.edit_answer = ""
 
 # --- Section 1: Teach the AI ---
-st.header("Step 1: Teach the AI")
+st.header("Step 1: Build the AI's Brain")
 with st.expander("👉 Click here to teach or edit rules!"):
     question_to_teach = st.text_input(
-        "If a user says this:",
+        "If a user says something like this:",
         value=st.session_state.edit_question,
         key="q_input"
     ).lower()
@@ -105,29 +85,36 @@ if user_input:
         st.markdown(user_input)
 
     cleaned_input = user_input.lower().strip("?!.,")
+
+    # --- NEW SIMPLIFIED BRAIN LOGIC ---
+
+    # Brain #1: Check for a perfect match first.
     if cleaned_input in st.session_state.taught_rules:
         ai_response = st.session_state.taught_rules[cleaned_input]
-        response_source = "🤖 (From my memory)"
-        final_response = f"{response_source}: {ai_response}"
+        response_source = "🤖 (From my memory - perfect match!)"
+
+    # Brain #2: If no perfect match, use fuzzy matching to find the closest one.
     else:
-        # Using a short-term memory to keep the AI fast
-        recent_history = st.session_state.history[-6:]
+        known_questions = list(st.session_state.taught_rules.keys())
 
-        # Create a formatted prompt for the instruction-tuned model
-        messages = []
-        for msg in recent_history:
-            messages.append({"role": "user" if msg["role"] == "user" else "assistant", "content": msg["content"]})
+        if known_questions:
+            # Find the best match from the list of known questions
+            best_match, score = process.extractOne(cleaned_input, known_questions)
 
-        prompt = chatbot.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+            # We set a "confidence score" of 80. If the match is >= 80%, we use it.
+            if score >= 80:
+                ai_response = st.session_state.taught_rules[best_match]
+                response_source = f"🤔 (Close enough! This reminded me of '{best_match}')"
+            else:
+                ai_response = "I don't know the answer to that. Please teach me using the section above!"
+                response_source = "🤷 (I'm not sure)"
+        else:
+            # This happens if the AI's memory is completely empty.
+            ai_response = "My brain is empty! Please teach me something."
+            response_source = "🧠 (Empty)"
 
-        # Generate the response
-        raw_output = chatbot(prompt, max_new_tokens=250, do_sample=True, temperature=0.7, top_k=50, top_p=0.95)
-
-        # More robust way to get the response
-        ai_response = raw_output[0]['generated_text'][len(prompt):].strip()
-        response_source = "✨ (From my creative brain)"
-        final_response = f"{response_source}: {ai_response}"
-
+    # --- Display the response ---
+    final_response = f"{response_source}: {ai_response}"
     st.session_state.history.append({"role": "assistant", "content": final_response})
     with st.chat_message("assistant"):
         st.markdown(final_response)
