@@ -1,11 +1,18 @@
 import streamlit as st
 from transformers import pipeline
+import torch
 
 
-# Load the model only once
+# Use a cache to load the model only once
 @st.cache_resource
 def load_model():
-    model = pipeline("text-generation", model="microsoft/DialoGPT-medium")
+    # --- MAJOR UPGRADE: Using Google's Gemma model ---
+    # This is a powerful and knowledgeable model for excellent conversations.
+    model = pipeline(
+        "text-generation",
+        model="google/gemma-2b-it",
+        model_kwargs={"torch_dtype": torch.bfloat16}  # Optimizes for performance
+    )
     return model
 
 
@@ -16,7 +23,8 @@ def set_edit_state(question, answer):
 
 
 def delete_rule(question):
-    del st.session_state.taught_rules[question]
+    if question in st.session_state.taught_rules:
+        del st.session_state.taught_rules[question]
     st.rerun()
 
 
@@ -25,7 +33,12 @@ st.title("🧑‍🏫 The AI Classroom 🧠")
 st.write("Teach your AI, manage its memory, and chat with it!")
 
 # Load the AI model
-chatbot = load_model()
+try:
+    chatbot = load_model()
+except Exception as e:
+    st.error(f"Error loading AI model: {e}")
+    st.error("This might be due to a missing Hugging Face access token. Please add it to your Streamlit secrets.")
+    st.stop()
 
 # --- Initialize session state ---
 if 'taught_rules' not in st.session_state:
@@ -67,7 +80,7 @@ st.header("🧠 AI Memory Pool")
 if not st.session_state.taught_rules:
     st.info("The AI's memory is empty. Teach it something!")
 else:
-    for question, answer in st.session_state.taught_rules.items():
+    for question, answer in list(st.session_state.taught_rules.items()):
         col1, col2, col3, col4 = st.columns([3, 4, 1, 1])
         with col1:
             st.write(f"**If user says:**\n\n`{question}`")
@@ -95,19 +108,27 @@ if user_input:
     if cleaned_input in st.session_state.taught_rules:
         ai_response = st.session_state.taught_rules[cleaned_input]
         response_source = "🤖 (From my memory)"
+        final_response = f"{response_source}: {ai_response}"
     else:
-        # --- THIS IS THE FIX ---
-        # Only use the last 10 messages for the creative brain's context
-        recent_history = st.session_state.history[-10:]
-        prompt_history = "".join([f"{'Human' if msg['role'] == 'user' else 'Assistant'}: {msg['content']}\n" for msg in
-                                  recent_history]) + "Assistant:"
+        # Using a short-term memory to keep the AI fast
+        recent_history = st.session_state.history[-6:]
 
-        raw_output = chatbot(prompt_history, max_length=1000, pad_token_id=chatbot.tokenizer.eos_token_id)
-        full_response = raw_output[0]['generated_text']
-        ai_response = full_response[len(prompt_history):].strip()
+        # Create a formatted prompt for the instruction-tuned model
+        messages = []
+        for msg in recent_history:
+            messages.append({"role": "user" if msg["role"] == "user" else "assistant", "content": msg["content"]})
+
+        prompt = chatbot.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+
+        # Generate the response
+        raw_output = chatbot(prompt, max_new_tokens=250, do_sample=True, temperature=0.7, top_k=50, top_p=0.95)
+
+        # More robust way to get the response
+        ai_response = raw_output[0]['generated_text'][len(prompt):].strip()
         response_source = "✨ (From my creative brain)"
+        final_response = f"{response_source}: {ai_response}"
 
-    final_response = f"{response_source}: {ai_response}"
     st.session_state.history.append({"role": "assistant", "content": final_response})
     with st.chat_message("assistant"):
         st.markdown(final_response)
+
