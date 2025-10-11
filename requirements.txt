@@ -22,7 +22,6 @@ replit==4.1.1
 reportlab==4.4.0
 Requests==2.32.3
 scikit_learn==1.6.1
-spacy==3.8.5
 sympy==1.14.0
 transformers==4.51.3
 
