@@ -3,10 +3,18 @@
 
 try:
     file = open("b_file.txt")
-except  FileNotFoundError:
-    print("An error occurred while trying to open the file.")
+    a_dictionary = {"key": "value"}
+    print(a_dictionary["key"])
+except FileNotFoundError:
+    file = open("b_file.txt", "w")
+except KeyError as error_message:
+    print(f"The key {error_message} does not exist.")
 else:
-    print("correct File found")
+    content = file.read()
+    print(content)
+finally:
+    file.close()
+    print("File was closed.")
 
 # while True:
 #     try:
