@@ -110,7 +110,6 @@ def save_password():
                 with open("data.json", "r") as data_file:
                     # data_file.write(f"{website} | {email} | {password}\n")
                     data = json.load(data_file)
-                    print(data)
                     data.update(new_data)
             except FileNotFoundError:
                 data = new_data
@@ -122,6 +121,20 @@ def save_password():
                 password_entry.delete(0, END)
                 
             website_entry.focus()
+
+# ---------------------------- FIND WEBSITE ------------------------------- #
+def find_website():
+    website = website_entry.get()
+    try:
+        with open("data.json", "r") as data_file:
+            data = json.load(data_file)
+            for website_names, identity in data.items():
+                if website == website_names:
+                    messagebox.showinfo(title=website, message=f"Email: {identity['email']}\nPassword: {identity['password']}")
+                    return
+            messagebox.showinfo(title="Not Found", message=f"No details for the website '{website}' exists.")
+    except FileNotFoundError:
+        messagebox.showerror(title="File Not Found", message="No data file found.")
 
 # ---------------------------- UI SETUP ------------------------------- #
 window = Tk()
@@ -142,7 +155,7 @@ password_label = Label(text="Password:")
 password_label.grid(column=0, row=4)
 
 # Entries
-website_entry = Entry(width=35)
+website_entry = Entry(width=21)
 website_entry.grid(column=1, row=2, columnspan=2, sticky="EW")
 website_entry.focus()
 email_entry = Entry(width=35)
@@ -153,8 +166,11 @@ email_entry.grid(column=1, row=3, columnspan=2, sticky="EW")
 password_entry = Entry(width=21)
 password_entry.grid(column=1, row=4, sticky="EW")
 
-generate_password_button = Button(text="Generate Password", width=14, pady=2, \
-                                  command=generate_password)
+# Buttons
+
+search_website_button = Button(text="Search", width=14, pady=2, command=find_website, borderwidth=2, relief="groove")
+search_website_button.grid(column=2, row=2, sticky="EW")
+generate_password_button = Button(text="Generate Password", width=14, pady=2, command=generate_password, borderwidth=2, relief="groove")
 generate_password_button.grid(column=2, row=4, sticky="EW")
 add_button = Button(text="Add", width=35, pady=2, command=save_password)
 add_button.grid(column=1, row=5, columnspan=2, sticky="EW")
