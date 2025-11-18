@@ -5,19 +5,20 @@ def get_target_info(dtstr, station_code):
     """
     Calculates the remote path and filename for the given datetime string and station code.
     """
-    try:
-        # 1. Parse the input string (e.g, "20241206")
-        dt = datetime.strptime(dtstr, "%Y%m%d")
-    except ValueError:
-        print(f"Error: Invalid date format '{dtstr}'. Expected 'YYYYMMDD'.")
-        return None, None
+    # try:
+    #     # 1. Parse the input string (e.g, "20241206")
+    #     dt = datetime.strptime(dtstr, "%Y%m%d")
+    # except ValueError:
+    #     print(f"Error: Invalid date format '{dtstr}'. Expected 'YYYYMMDD'.")
+    #     return None, None
     
     # 2. Create the target path: /YYYY/DOY
     # %j = Day of year (001 to 366)
-    target_path = f"/{dt.year:04d}/{dt.strftime('%j')}"
+    target_path = f"/{dtstr.year:04d}/{dtstr.strftime('%j')}"
 
     # 3. Create a remote filename pattern (e.g., KGB1_20241206.dat)
-    target_filename = f"{station_code.upper()}_{dt.strftime('%Y%m%d')}.dat"
+    target_filename = f"{station_code.upper()}_{dtstr.strftime('%Y%m%d')}.dat"
+
     return target_path, target_filename
 
 if __name__ == "__main__":
@@ -27,13 +28,13 @@ if __name__ == "__main__":
     p.add_argument("--date", required=False, help="Date in YYYYMMDD format")
     p.add_argument("--start", required=False, help="Start Date in YYYYMMDD format for date range")
     p.add_argument("--end", required=False, help="End Date in YYYYMMDD format for date range")
-    p.add_argument("--station", required=True, help=" 4-char Station code(e.eg., KGB1)")
+    p.add_argument("--station", required=False, help=" 4-char Station code(e.eg., KGB1)")
     p.add_argument("--simulate", action="store_true", help="Simulate the download process")
     args = p.parse_args()
 
     # 2. Use Date logic to calculate the target path and filename
     print(f"Simulating download for date: {args.date}, station: {args.station}")
-    path, filename = get_target_info(args.date, args.station)
+    # path, filename = get_target_info(args.date, args.station)
 
     """ # 3. Simulate the download process by printing the target path and filename
     if path and filename:
