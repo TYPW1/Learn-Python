@@ -26,14 +26,14 @@ if __name__ == "__main__":
     #1. Use Argparse to get the date and station code from command line
     p = argparse.ArgumentParser(description="Simulate downloader target path and filename generation.")
     p.add_argument("--date", required=False, help="Date in YYYYMMDD format")
-    p.add_argument("--start", required=False, help="Start Date in YYYYMMDD format for date range")
-    p.add_argument("--end", required=False, help="End Date in YYYYMMDD format for date range")
-    p.add_argument("--station", required=False, help=" 4-char Station code(e.eg., KGB1)")
+    p.add_argument("--start", required=True, help="Start Date in YYYYMMDD format for date range")
+    p.add_argument("--end", required=True, help="End Date in YYYYMMDD format for date range")
+    p.add_argument("--station", required=True, help=" 4-char Station code(e.eg., KGB1)")
     p.add_argument("--simulate", action="store_true", help="Simulate the download process")
     args = p.parse_args()
 
     # 2. Use Date logic to calculate the target path and filename
-    print(f"Simulating download for date: {args.date}, station: {args.station}")
+    # print(f"Simulating download for date: {args.date}, station: {args.station}")
     # path, filename = get_target_info(args.date, args.station)
 
     """ # 3. Simulate the download process by printing the target path and filename
@@ -54,13 +54,13 @@ if __name__ == "__main__":
 
     try:
         # Convert text-based start/end dates into real datetime objects
-        current_date = datetime.strptime(args.date, "%Y%m%d")
+        current_date = datetime.strptime(args.start, "%Y%m%d")
         end_date = datetime.strptime(args.end, "%Y%m%d") # e.g., "20241210"
         
         # define a "oneday" time difference
         one_day =timedelta(days=1)
 
-        print(f"---Starting backfill for {args.station} from {args.date} to {args.end} ---")
+        print(f"---Starting backfill for {args.station} from {args.start} to {args.end} ---")
 
         # loop from start to end, inclusive
         while current_date <= end_date:
@@ -69,9 +69,12 @@ if __name__ == "__main__":
             print(f"Processing date: {dtstr}")
 
             #2. Use Date Logic to calculate the target path and filename
-            path, filename = get_target_info(dtstr, args.station)
+            # Pass the datetime object directly to get_target_info
+            path, filename = get_target_info(current_date, args.station)
             if path and filename:
-                print(f"[Simulate] Date: {dtstr}, Remote Path: {path}, Remote Filename: {filename}")
+                print(f"Date Logic: {dtstr} is Day of Year {current_date.strftime('%j')}")
+                print(f"[SIMULATE] Attempting to download: {filename}")
+                print(f"[SIMULATE] Attempting to save to local path: {path}/{filename}")
             # increment the date by one day
             current_date += one_day
         print(f"---Backfill simulation complete---")
