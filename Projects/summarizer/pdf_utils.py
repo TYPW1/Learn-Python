@@ -45,6 +45,20 @@ def chunk_text(text, max_words=400):
     return [" ".join(words[i:i + max_words]) for i in range(0, len(words), max_words)]
 
 
+def format_summaries(summaries, width=100):
+    """
+    Format a list of summaries into a single string with text wrapping.
+    
+    Args:
+        summaries: List of summary strings.
+        width: Maximum line width for text wrapping (default: 100).
+        
+    Returns:
+        str: Formatted summary string with wrapped text.
+    """
+    return "\n\n".join([textwrap.fill(s, width=width) for s in summaries])
+
+
 def save_summary_to_pdf(text, filename="LLM_Summary.pdf"):
     """
     Save text content to a PDF file with proper formatting.

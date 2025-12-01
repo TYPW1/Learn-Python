@@ -1,10 +1,9 @@
 # ---- SETUP ----
 import os
-import textwrap
 from openai import OpenAI
 from dotenv import load_dotenv
 
-from pdf_utils import extract_text_from_pdf, chunk_text, save_summary_to_pdf
+from pdf_utils import extract_text_from_pdf, chunk_text, format_summaries, save_summary_to_pdf
 
 
 load_dotenv()
@@ -46,9 +45,7 @@ for i, chunk in enumerate(chunks):
     summaries.append(summary)
 
 # ---- FINAL SUMMARY ----
-final_summary = "\n\n".join(
-    [textwrap.fill(s, width=100) for s in summaries]
-)
+final_summary = format_summaries(summaries)
 
 # Save final_summary to PDF
 save_summary_to_pdf(final_summary, filename="LLM_Summary(gpt).pdf")
