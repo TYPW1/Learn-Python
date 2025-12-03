@@ -1,0 +1,46 @@
+sequenceDiagram
+    autonumber
+    participant Cron as Cron Job (fetch)
+    participant Script as downloader.py
+    participant Local as Local Storage (/tmp)
+    participant Source as Data Source (e.g. Tacha/KBG)
+    participant Archive as Archive (ftp.uni.lu)
+
+    Note over Cron,Script: 1. Job Trigger
+    Cron->>Script: Wake up & Execute (e.g., 02:00 AM)
+    activate Script
+
+    Note over Script,Source: 2. Collection Phase
+    Script->>Source: Connect (SFTP/FTP/HTTPS)
+    alt Connection is Secure (SFTP)
+        Source-->>Script: Connection Accepted
+    else Connection is Insecure (FTP)
+        Source-->>Script: WARN: Plaintext Creds Sent!
+    end
+    
+    Script->>Source: Request File List
+    Source-->>Script: Return File List
+    Script->>Local: Download File to /tmp
+    activate Local
+    Local-->>Script: File Saved Temporarily
+    deactivate Local
+
+    Note over Script,Archive: 3. Archival Phase
+    Script->>Archive: Connect (SFTP/FTP)
+    Archive-->>Script: Connection Accepted
+    Script->>Local: Read File from /tmp
+    activate Local
+    Local-->>Script: File Data
+    deactivate Local
+    Script->>Archive: Upload File
+    Archive-->>Script: Transfer Complete
+
+    Note over Script,Source: 4. Cleanup Phase
+    opt If --delete flag is active
+        Script->>Source: Delete Original File
+        Source-->>Script: File Deleted
+    end
+    Script->>Local: Delete Temporary File
+    
+    Script-->>Cron: Exit (Success)
+    deactivate Script

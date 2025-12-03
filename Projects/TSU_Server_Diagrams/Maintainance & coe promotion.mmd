@@ -1,0 +1,44 @@
+%%{init: {
+  "flowchart": { "wrap": true, "htmlLabels": false, "useMaxWidth": false, "nodeSpacing": 50, "rankSpacing": 50 },
+  "themeVariables": { "fontSize": "14px", "textColor": "#111111", "primaryTextColor": "#111111" }
+}}%%
+flowchart TD
+    %% Styling
+    classDef dev fill:#fff9c4,stroke:#fbc02d,stroke-width:2px,color:#111111;
+    classDef prod fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#111111;
+    classDef security fill:#ffcdd2,stroke:#b71c1c,stroke-width:2px,stroke-dasharray: 5 5,color:#111111;
+    classDef action fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#111111;
+    classDef dark fill:#333,stroke:#000,color:#111111,stroke-width:2px;
+
+    Start([Start: New Requirement]) --> Login_Devel
+
+    subgraph Sandbox ["Development Environment (User: devel)"]
+        style Sandbox fill:#424242,stroke:#212121,stroke-dasharray: 5 5
+        Login_Devel(Log in as 'devel'):::dev
+        Edit_Script[Edit/Create Script in\n/home/devel/bin/]:::dev
+        Test_Run{Test Run\nSuccess?}:::dev
+        Debug[Debug & Fix]:::dev
+    end
+
+    Login_Devel --> Edit_Script
+    Edit_Script --> Test_Run
+    Test_Run -- No --> Debug
+    Debug --> Edit_Script
+
+    subgraph Production ["Production Environment (User: fetch)"]
+        style Production fill:#424242,stroke:#212121,stroke-dasharray: 5 5
+        Test_Run -- Yes --> Backup[Backup current script\nin /home/fetch/bin/]:::prod
+        Backup --> Copy[Copy new script\nto /home/fetch/bin/]:::prod
+        
+        %% Security Check
+        Check_Perms{Is Config\nSecure?}:::security
+        Fix_Perms[Run: chmod 600\non .xml files]:::security
+        
+        Copy --> Check_Perms
+        Check_Perms -- No --> Fix_Perms
+        Check_Perms -- Yes --> Update_Cron["Update Crontab\nIf schedule changed"]:::prod
+    end
+
+    Fix_Perms --> Update_Cron
+    Update_Cron --> Monitor["Monitor Logs\nNext 24h"]:::action
+    Monitor --> End([Process Complete])

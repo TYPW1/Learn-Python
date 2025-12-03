@@ -1,0 +1,63 @@
+graph LR
+    %% Node Styling
+    classDef hub fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000;
+    classDef orchestrator fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000;
+    classDef storage fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000;
+    classDef source fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000;
+    classDef warning stroke:#d32f2f,stroke-width:3px,stroke-dasharray: 5 5;
+
+    subgraph Sources_Group ["Data Sources (Inputs)"]
+        direction TB
+        %% Sources that push to Tacha
+        SPSLUX("SPSLUX (Sensors)"):::source
+        ASTA("ASTA (Meteo)"):::source
+        LXAA("LXAA (Receiver)"):::source
+        OBGU("OBGU (Receiver)"):::source
+        UKMET("UK Met Office (Unknown)"):::source
+
+        %% Sources Datacoll pulls directly
+        KBG("KBG Receiver<br/>(10.186.112.10)"):::source
+        PEA1("PEA1 Filer<br/>(185.96.7.126)"):::source
+        ANA("ANA Meteo<br/>(data.ana.lu)"):::source
+        UNAVCO("UNAVCO GPS<br/>(data-out.unavco.org)"):::source
+    end
+
+    subgraph Tacha_VM ["Server: tacha (The Hub)"]
+        direction TB
+        Tacha_FTP[("/home/ftp/ Dropboxes<br/>(ProFTPD Service)")]:::hub
+        Tacha_NTRIP("Real-time Streamer<br/>(NTRIP Service)"):::hub
+    end
+
+    subgraph Datacoll_VM ["Server: datacoll (The Orchestrator)"]
+        direction TB
+        FetchUser("User: 'fetch'<br/>(Cron Scheduler)"):::orchestrator
+        Scripts("Python Scripts<br/>(e.g., *downloader.py)"):::orchestrator
+    end
+
+    subgraph Archive_Server ["Destination (The Vault)"]
+        Archive[("ftp.uni.lu<br/>(Final Archive)")]:::storage
+    end
+
+    %% -- Flows to Tacha (Push) --
+    SPSLUX & ASTA & LXAA & OBGU -->|SFTP Push| Tacha_FTP
+    UKMET -.->|Orphaned Data?| Tacha_FTP
+
+    %% -- Live Stream Flow --
+    SPSLUX -.->|Live Signal| Tacha_NTRIP
+    Tacha_NTRIP -.->|Broadcasting| Clients(Field Rovers)
+
+    %% -- Datacoll Pulls --
+    Tacha_FTP -->|SFTP Pull| Scripts
+    KBG -->|FTP Pull Insecure| Scripts
+    PEA1 -->|SFTP Pull| Scripts
+    ANA -->|FTPS Pull| Scripts
+    UNAVCO -->|HTTPS Pull| Scripts
+
+    %% -- Datacoll Logic --
+    FetchUser -->|Triggers| Scripts
+
+    %% -- Final Push --
+    Scripts -->|SFTP Upload| Archive
+
+    %% Apply Warning Style to KBG for Insecure FTP
+    class KBG warning

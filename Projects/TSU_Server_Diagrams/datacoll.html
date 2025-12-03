@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datacoll Server Blueprint</title>
+    <style>
+        :root {
+            --server-bg: #2E3B4E; /* Dark Blue-Grey for Datacoll to distinguish from Tacha */
+            --server-border: #455A64;
+            --accent-blue: #42A5F5;
+            --accent-green: #66BB6A;
+            --accent-yellow: #FDD835;
+            --accent-red: #EF5350;
+            --accent-purple: #AB47BC;
+            --text-light: #ECEFF1;
+            --text-dim: #B0BEC5;
+            --card-bg: #fff;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 { color: #333; margin-bottom: 10px; }
+        p { color: #666; margin-bottom: 30px; max-width: 800px; text-align: center; }
+
+        .blueprint-container {
+            position: relative;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 1200px;
+            display: grid;
+            grid-template-columns: 280px 1fr 280px;
+            gap: 40px;
+            align-items: start;
+        }
+
+        /* --- THE SERVER CHASSIS (CENTER) --- */
+        .server-chassis {
+            background: var(--server-bg);
+            border: 2px solid var(--server-border);
+            border-radius: 12px;
+            padding: 20px;
+            color: var(--text-light);
+            position: relative;
+            min-height: 600px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .server-header {
+            border-bottom: 1px solid var(--server-border);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .server-title { font-size: 1.2rem; font-weight: bold; color: var(--accent-green); }
+        .server-specs { font-size: 0.8rem; color: var(--text-dim); }
+
+        /* --- INTERNAL ZONES --- */
+        .zone {
+            background: rgba(255,255,255,0.05);
+            border: 1px dashed rgba(255,255,255,0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .zone-title {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+        }
+
+        /* --- FILESYSTEM NODES --- */
+        .fs-node {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.3);
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            border-left: 3px solid transparent;
+        }
+
+        .fs-node.script { border-left-color: var(--accent-blue); }
+        .fs-node.config { border-left-color: var(--accent-yellow); color: var(--accent-yellow); }
+        .fs-node.risk { border-left-color: var(--accent-red); background: rgba(239, 83, 80, 0.1); }
+        .fs-node.temp { border-left-color: #90A4AE; border-style: dashed; }
+
+        .badge {
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 3px;
+            background: #455A64;
+            color: #fff;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .badge-cron { background: var(--accent-green); color: #1B5E20; }
+        .badge-risk { background: var(--accent-red); color: #fff; }
+        .badge-warn { background: var(--accent-yellow); color: #333; }
+
+        /* --- EXTERNAL ENTITIES (LEFT/RIGHT) --- */
+        .entity-col {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: relative;
+            height: 100%;
+        }
+
+        .entity-card {
+            background: var(--card-bg);
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: relative;
+            z-index: 20;
+        }
+
+        .entity-header {
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .entity-sub { font-size: 0.8rem; color: #555; margin-top: 4px; display:flex; justify-content:space-between; }
+        .entity-detail { font-size: 0.75rem; color: #777; margin-top: 2px; font-family: monospace; }
+        
+        .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .dot-green { background: var(--accent-green); }
+        .dot-red { background: var(--accent-red); }
+
+        /* --- CONNECTORS (SVG) --- */
+        .svg-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* --- PROCESS FLOW ANIMATION --- */
+        .process-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--server-border);
+            margin: 10px 0;
+            font-size: 1.2rem;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Server Anatomy: Datacoll (The Orchestrator)</h1>
+    <p>Detailed breakdown of the scheduling engine, user environments, script inventory, execution logic, and target connections.</p>
+
+    <div class="blueprint-container">
+
+        <!-- LEFT COLUMN: TRIGGERS & INPUTS -->
+        <div class="entity-col">
+            <div style="text-align:center; font-weight:bold; color:#555; margin-bottom:10px;">TRIGGERS (TIME)</div>
+            
+            <!-- CRON MASTER -->
+            <div class="entity-card" style="border-left: 4px solid var(--accent-green);">
+                <div class="entity-header">
+                    <span><span class="status-dot dot-green"></span>CRON DAEMON</span>
+                    <span class="badge">System</span>
+                </div>
+                <div class="entity-sub">Role: The Heartbeat</div>
+                <div class="entity-sub">File: <code>20241206_...crontab.txt</code></div>
+                
+                <div style="margin-top:10px; font-size:0.8rem; background:#E8F5E9; padding:8px; border-radius:4px; border:1px solid #C8E6C9;">
+                    <strong>Daily Schedule:</strong><br>
+                    <code>01:00</code> - KBG (External)<br>
+                    <code>01:30</code> - UNAVCO (External)<br>
+                    <code>02:00</code> - ASTA (Internal)<br>
+                    <code>03:00</code> - OBGU (Internal)<br>
+                    <code>04:00</code> - LXAA (Internal)<br>
+                    <code>17:00</code> - PEA1 (External)<br>
+                    <hr style="border:0; border-top:1px solid #ccc; margin:5px 0;">
+                    <strong>Hourly Schedule:</strong><br>
+                    <code>*:25</code> - ANA (External)<br>
+                    <code>*:35</code> - SPSLUX (Internal)
+                </div>
+            </div>
+
+            <!-- DEV USER -->
+            <div class="entity-card" style="margin-top: auto; border-left: 4px solid var(--accent-yellow);">
+                <div class="entity-header">
+                    <span><span class="status-dot" style="background:var(--accent-yellow)"></span>USER: DEVEL</span>
+                    <span class="badge">Human</span>
+                </div>
+                <div class="entity-sub">Role: Script Author</div>
+                <div class="entity-sub">Risk: No formal deploy process</div>
+            </div>
+        </div>
+
+        <!-- CENTER COLUMN: THE SERVER -->
+        <div class="server-chassis">
+            <div class="server-header">
+                <div class="server-title">datacoll (Internal VM)</div>
+                <div class="server-specs">Ubuntu Linux | 2 vCPU | 30GB Storage (Minimal)</div>
+            </div>
+
+            <!-- ZONE 1: PRODUCTION ENV (FETCH) -->
+            <div class="zone" style="border-color: var(--accent-green);">
+                <div class="zone-title" style="color:var(--accent-green);">
+                    <span>User: fetch (Production)</span>
+                    <span class="badge badge-cron">Active</span>
+                </div>
+                
+                <!-- Scripts -->
+                <div style="margin-top:5px; margin-bottom:5px; font-size:0.75rem; color:#aaa;">~/bin/ (Business Logic)</div>
+                
+                <div class="fs-node script">
+                    <span>SPSLUXdownloader.py</span>
+                    <span class="badge">SFTP</span>
+                </div>
+                <div class="fs-node script">
+                    <span>ASTAdownloader.py</span>
+                    <span class="badge">SFTP</span>
+                </div>
+                <div class="fs-node script">
+                    <span>LXAAdownloader.py</span>
+                    <span class="badge">SFTP</span>
+                </div>
+                <div class="fs-node script">
+                    <span>ANAdownloader.py</span>
+                    <span class="badge">FTPS</span>
+                </div>
+                <div class="fs-node script">
+                    <span>UNAVCOdownloader.py</span>
+                    <span class="badge">HTTPS</span>
+                </div>
+                <div class="fs-node script">
+                    <span>PEA1downloader.py</span>
+                    <span class="badge badge-warn">HARD IP</span>
+                </div>
+
+                <!-- Risk Scripts -->
+                <div class="fs-node risk">
+                    <span>KBGdownloader.py</span>
+                    <span class="badge badge-risk">PLAIN FTP</span>
+                </div>
+                <div class="fs-node risk">
+                    <span>OBGUdownloader.py</span>
+                    <span class="badge badge-risk">PASSWORD EXPOSED</span>
+                </div>
+
+                <!-- Configs -->
+                <div style="margin-top:10px; margin-bottom:5px; font-size:0.75rem; color:#aaa;">~/etc/ (Secrets)</div>
+                <div class="fs-node config">
+                    <span>*.xml Config Files</span>
+                    <span class="badge">Check Perms!</span>
+                </div>
+                <div class="fs-node risk">
+                    <span>rsa4096keys.dat</span>
+                    <span class="badge badge-risk">UNKNOWN KEY</span>
+                </div>
+            </div>
+
+            <!-- EXECUTION FLOW VISUAL -->
+            <div class="process-arrow">⬇ Processing ⬇</div>
+
+            <!-- ZONE 2: TRANSIENT STORAGE -->
+            <div class="zone" style="border-color: #90A4AE; background: rgba(144, 164, 174, 0.1);">
+                <div class="zone-title" style="color:#90A4AE;">
+                    <span>Workspace: /tmp</span>
+                    <span class="badge">Transient</span>
+                </div>
+                <div class="fs-node temp">
+                    <span>[temp_data_file.csv]</span>
+                    <span class="badge">Downloading...</span>
+                </div>
+                <div class="fs-node temp">
+                    <span>[temp_data_file.csv]</span>
+                    <span class="badge">Uploading...</span>
+                </div>
+                <div style="text-align:center; font-size:0.75rem; color:#B0BEC5; margin-top:5px;">
+                    *Files automatically deleted after transfer
+                </div>
+            </div>
+
+            <!-- ZONE 3: DEV ENV (ISOLATED) -->
+            <div class="zone" style="border-color: var(--accent-yellow); margin-top: 20px; opacity: 0.8;">
+                <div class="zone-title" style="color:var(--accent-yellow);">
+                    <span>User: devel (Sandbox)</span>
+                    <span class="badge" style="background:#555">Isolated</span>
+                </div>
+                <div class="fs-node script" style="border-left-color: var(--accent-yellow);">
+                    <span>~/bin/anaTest.py</span>
+                </div>
+                <div class="fs-node script" style="border-left-color: var(--accent-yellow);">
+                    <span>~/bin/json_test.py</span>
+                </div>
+                <div style="color: var(--accent-red); font-size: 0.8rem; text-align: center; margin-top: 10px; border: 1px dashed var(--accent-red); padding: 5px;">
+                    ⚠️ GAP: No automated path to 'fetch'
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN: TARGETS -->
+        <div class="entity-col">
+            <div style="text-align:center; font-weight:bold; color:#555; margin-bottom:10px;">TARGETS (CONNECTIVITY)</div>
+
+            <!-- PULL: INTERNAL -->
+            <div class="entity-card" style="border-left: 4px solid var(--accent-blue);">
+                <div class="entity-header">
+                    <span><span class="status-dot dot-green"></span>TACHA HUB</span>
+                    <span class="badge">SFTP</span>
+                </div>
+                <div class="entity-sub"><span>Source:</span> <span>Internal</span></div>
+                <div class="entity-detail">Target: tacha.fstc.uni.lu</div>
+                <div class="entity-detail">Scripts: SPSLUX, ASTA, LXAA, OBGU</div>
+            </div>
+
+            <!-- PULL: EXTERNAL (SAFE) -->
+            <div class="entity-card" style="border-left: 4px solid var(--accent-blue);">
+                <div class="entity-header">
+                    <span><span class="status-dot dot-green"></span>CLOUD APIS</span>
+                    <span class="badge">FTPS/HTTPS</span>
+                </div>
+                <div class="entity-sub"><span>Source:</span> <span>External</span></div>
+                <div class="entity-detail">ANA: data.ana.lu</div>
+                <div class="entity-detail">UNAVCO: data-out.unavco.org</div>
+            </div>
+
+            <!-- PULL: EXTERNAL (RISK) -->
+            <div class="entity-card" style="border-left: 4px solid var(--accent-red); background:#FFEBEE;">
+                <div class="entity-header" style="color: #C62828;">
+                    <span><span class="status-dot dot-red"></span>LEGACY RISKS</span>
+                    <span class="badge badge-risk">ALERT</span>
+                </div>
+                
+                <!-- KBG -->
+                <div style="margin-top:5px; border-bottom:1px solid #ef9a9a; padding-bottom:5px;">
+                    <div class="entity-sub" style="color:#C62828; font-weight:bold;">KBG Receiver</div>
+                    <div class="entity-detail">IP: 10.186.112.10</div>
+                    <div class="entity-detail">Risk: <strong>Plaintext FTP</strong></div>
+                </div>
+
+                <!-- PEA1 -->
+                <div style="margin-top:5px;">
+                    <div class="entity-sub" style="color:#EF6C00; font-weight:bold;">PEA1 Filer</div>
+                    <div class="entity-detail">IP: 185.96.7.126</div>
+                    <div class="entity-detail">Risk: <strong>Hardcoded IP</strong></div>
+                </div>
+            </div>
+
+            <!-- PUSH TARGET -->
+            <div class="entity-card" style="margin-top: auto; border-left: 4px solid var(--accent-purple);">
+                <div class="entity-header">
+                    <span><span class="status-dot" style="background:var(--accent-purple)"></span>ARCHIVE</span>
+                    <span class="badge">SFTP</span>
+                </div>
+                <div class="entity-sub">Host: <strong>ftp.uni.lu</strong></div>
+                <div class="entity-sub">Action: Final Upload</div>
+            </div>
+
+        </div>
+
+        <!-- SVG CONNECTORS -->
+        <svg class="svg-overlay">
+            <defs>
+                <marker id="arrow-green-sm" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#66BB6A" /></marker>
+                <marker id="arrow-blue-sm" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#42A5F5" /></marker>
+                <marker id="arrow-red-sm" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#EF5350" /></marker>
+            </defs>
+            
+            <!-- Cron to Fetch Zone -->
+            <path d="M 280 150 L 320 150" stroke="#66BB6A" stroke-width="2" marker-end="url(#arrow-green-sm)" />
+
+            <!-- Fetch Zone to Tacha -->
+            <path d="M 880 200 C 930 200, 930 150, 980 150" stroke="#42A5F5" stroke-width="2" fill="none" marker-end="url(#arrow-blue-sm)" />
+            
+            <!-- Fetch Zone to Risks -->
+            <path d="M 880 350 C 930 350, 930 400, 980 400" stroke="#EF5350" stroke-width="2" fill="none" marker-end="url(#arrow-red-sm)" />
+
+            <!-- Temp Zone to Archive -->
+            <path d="M 880 500 C 930 500, 930 650, 980 650" stroke="#AB47BC" stroke-width="2" fill="none" marker-end="url(#arrow-blue-sm)" stroke-dasharray="5,5" />
+
+            <!-- Developer to Dev Zone -->
+            <path d="M 280 600 L 320 600" stroke="#FDD835" stroke-width="2" marker-end="url(#arrow-green-sm)" />
+        </svg>
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detailed Connectivity Diagram</title>
+    <style>
+        :root {
+            --primary-blue: #1565C0;
+            --primary-dark: #0D47A1;
+            --success-green: #2E7D32;
+            --warning-orange: #EF6C00;
+            --danger-red: #C62828;
+            --bg-gray: #F5F7FA;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-gray);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 { color: #333; margin-bottom: 30px; }
+        
+        .canvas {
+            display: grid;
+            grid-template-columns: 350px 300px 300px 250px;
+            gap: 30px;
+            max-width: 1400px;
+            width: 100%;
+            align-items: start;
+            position: relative;
+        }
+
+        /* CARD STYLES */
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            position: relative;
+            z-index: 2;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            padding: 10px 15px;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-body { padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+
+        /* COLORS */
+        .header-blue { background-color: var(--primary-blue); }
+        .header-green { background-color: var(--success-green); }
+        .header-purple { background-color: #6A1B9A; }
+        .header-orange { background-color: var(--warning-orange); }
+        .header-red { background-color: var(--danger-red); }
+
+        /* ITEM ROWS */
+        .data-row {
+            display: flex;
+            flex-direction: column;
+            padding: 8px;
+            background: #f8f9fa;
+            border-left: 3px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        .row-top { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 4px; }
+        .row-detail { font-size: 0.8rem; color: #666; display: flex; justify-content: space-between;}
+        .mono { font-family: monospace; color: #444; }
+
+        /* TAGS */
+        .tag { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
+        .tag-sftp { background: #e3f2fd; color: var(--primary-blue); }
+        .tag-ftp { background: #ffebee; color: var(--danger-red); border: 1px solid var(--danger-red); }
+        .tag-https { background: #e8f5e9; color: var(--success-green); }
+
+        /* RISKS */
+        .risk-border { border: 2px solid var(--danger-red); }
+        .risk-text { color: var(--danger-red); font-weight: bold; font-size: 0.8rem; margin-top: 4px; }
+
+        /* CONNECTIONS (SVG) */
+        .connections {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 1;
+        }
+
+        /* GRID COLUMNS */
+        .col-ext { grid-column: 1; }
+        .col-hub { grid-column: 2; }
+        .col-orch { grid-column: 3; }
+        .col-dest { grid-column: 4; }
+
+    </style>
+</head>
+<body>
+
+    <h1>Detailed System Connectivity & Status</h1>
+
+    <div class="canvas">
+        
+        <!-- SVG LAYER -->
+        <svg class="connections">
+            <defs>
+                <marker id="arrow" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#999" /></marker>
+                <marker id="arrow-red" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#C62828" /></marker>
+            </defs>
+            <!-- Draw rough connections -->
+            <path d="M 350 100 L 650 250" stroke="#999" stroke-width="2" fill="none" marker-end="url(#arrow)" stroke-dasharray="4"/>
+            <path d="M 650 250 L 950 250" stroke="#1565C0" stroke-width="4" fill="none" marker-end="url(#arrow)"/>
+            <path d="M 950 250 L 1200 250" stroke="#6A1B9A" stroke-width="4" fill="none" marker-end="url(#arrow)"/>
+            <path d="M 350 400 C 500 400, 600 350, 950 350" stroke="#C62828" stroke-width="2" fill="none" marker-end="url(#arrow-red)"/>
+        </svg>
+
+        <!-- COL 1: EXTERNAL SOURCES -->
+        <div class="col-ext">
+            <h3 style="margin-top:0;">Direct Pull Sources</h3>
+            
+            <!-- KBG (RISK) -->
+            <div class="card risk-border">
+                <div class="card-header header-red">
+                    <span>KBG Receiver</span>
+                    <span>⚠️ CRITICAL</span>
+                </div>
+                <div class="card-body">
+                    <div class="data-row">
+                        <div class="row-top"><span>IP: 10.186.112.10</span> <span class="tag tag-ftp">FTP</span></div>
+                        <div class="row-detail">Script: <span class="mono">KBGdownloader.py</span></div>
+                        <div class="row-detail">Sched: 01:00 Daily</div>
+                        <div class="risk-text">Insecure: Plaintext Creds</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PEA1 -->
+            <div class="card">
+                <div class="card-header header-orange">
+                    <span>PEA1 Filer</span>
+                    <span>Active</span>
+                </div>
+                <div class="card-body">
+                    <div class="data-row">
+                        <div class="row-top"><span>IP: 185.96.7.126</span> <span class="tag tag-sftp">SFTP</span></div>
+                        <div class="row-detail">Script: <span class="mono">PEA1downloader.py</span></div>
+                        <div class="row-detail">Sched: 17:00 Daily</div>
+                        <div class="risk-text" style="color:orange;">Warning: Hardcoded IP</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CLOUD -->
+            <div class="card">
+                <div class="card-header header-orange">
+                    <span>Cloud Providers</span>
+                    <span>Active</span>
+                </div>
+                <div class="card-body">
+                    <div class="data-row">
+                        <div class="row-top"><span>ANA Meteo</span> <span class="tag tag-sftp">FTPS</span></div>
+                        <div class="row-detail"><span class="mono">data.ana.lu</span></div>
+                        <div class="row-detail">Sched: Hourly (:25)</div>
+                    </div>
+                    <div class="data-row">
+                        <div class="row-top"><span>UNAVCO</span> <span class="tag tag-https">HTTPS</span></div>
+                        <div class="row-detail"><span class="mono">data-out.unavco.org</span></div>
+                        <div class="row-detail">Sched: Daily (01:30)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COL 2: HUB (TACHA) -->
+        <div class="col-hub">
+            <h3 style="margin-top:0;">Hub (Push Sources)</h3>
+            <div class="card">
+                <div class="card-header header-blue">
+                    <span>TACHA Server</span>
+                    <small>tacha.fstc.uni.lu</small>
+                </div>
+                <div class="card-body">
+                    <div style="font-size:0.8rem; color:#666; text-align:center;">Internal Sources Push Here</div>
+                    
+                    <!-- SPSLUX -->
+                    <div class="data-row" style="border-left-color: #2E7D32;">
+                        <div class="row-top"><span>SPSLUX</span> <span class="tag tag-sftp">SFTP</span></div>
+                        <div class="row-detail">Loc: <span class="mono">/home/ftp/spslux</span></div>
+                        <div class="row-detail">Sched: Hourly (:35)</div>
+                    </div>
+
+                    <!-- OBGU (RISK) -->
+                    <div class="data-row" style="border-left-color: #C62828; background:#ffebee;">
+                        <div class="row-top" style="color:#C62828;"><span>OBGU</span> <span class="tag tag-sftp">SFTP</span></div>
+                        <div class="row-detail">Loc: <span class="mono">/home/ftp/geod</span></div>
+                        <div class="risk-text">Risk: Hardcoded Password</div>
+                    </div>
+
+                    <!-- ASTA -->
+                    <div class="data-row" style="border-left-color: #2E7D32;">
+                        <div class="row-top"><span>ASTA</span> <span class="tag tag-sftp">SFTP</span></div>
+                        <div class="row-detail">Loc: <span class="mono">/home/ftp/asta</span></div>
+                        <div class="row-detail">Sched: Daily (02:00)</div>
+                    </div>
+
+                     <!-- UKMET (ORPHAN) -->
+                     <div class="data-row" style="border-left-color: orange; background:#fff3e0;">
+                        <div class="row-top"><span>UKMET</span> <span class="tag">???</span></div>
+                        <div class="row-detail">Loc: <span class="mono">/home/ftp/ukmet</span></div>
+                        <div class="risk-text" style="color:orange;">Status: Orphaned / Unused</div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- COL 3: ORCHESTRATOR -->
+        <div class="col-orch">
+            <h3 style="margin-top:0;">Orchestrator</h3>
+            <div class="card">
+                <div class="card-header header-green">
+                    <span>DATACOLL</span>
+                    <span>VM</span>
+                </div>
+                <div class="card-body">
+                    <div style="text-align:center; font-weight:bold; color:#2E7D32;">
+                        User: fetch
+                    </div>
+                    <div class="data-row">
+                        <div class="row-top">Cron Scheduler</div>
+                        <div class="row-detail">Triggers all scripts</div>
+                    </div>
+                    <div class="data-row">
+                        <div class="row-top">Process Flow</div>
+                        <div class="row-detail">1. Download to /tmp</div>
+                        <div class="row-detail">2. Upload to Archive</div>
+                        <div class="row-detail">3. Delete local file</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COL 4: DESTINATION -->
+        <div class="col-dest">
+            <h3 style="margin-top:0;">Archive</h3>
+            <div class="card">
+                <div class="card-header header-purple">
+                    <span>FTP.UNI.LU</span>
+                </div>
+                <div class="card-body">
+                    <div style="height:100px; display:flex; align-items:center; justify-content:center; background:#f3e5f5; border-radius:4px; color:#6A1B9A; font-weight:bold;">
+                        Final Storage
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

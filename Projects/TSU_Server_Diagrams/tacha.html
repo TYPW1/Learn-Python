@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tacha Server Blueprint</title>
+    <style>
+        :root {
+            --server-bg: #263238;
+            --server-border: #37474F;
+            --accent-blue: #29B6F6;
+            --accent-green: #66BB6A;
+            --accent-orange: #FFA726;
+            --accent-red: #EF5350;
+            --text-light: #ECEFF1;
+            --text-dim: #B0BEC5;
+            --card-bg: #fff;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 { color: #333; margin-bottom: 10px; }
+        p { color: #666; margin-bottom: 30px; max-width: 800px; text-align: center; }
+
+        .blueprint-container {
+            position: relative;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 1200px;
+            display: grid;
+            grid-template-columns: 250px 1fr 250px;
+            gap: 40px;
+            align-items: center;
+        }
+
+        /* --- THE SERVER CHASSIS (CENTER) --- */
+        .server-chassis {
+            background: var(--server-bg);
+            border: 2px solid var(--server-border);
+            border-radius: 12px;
+            padding: 20px;
+            color: var(--text-light);
+            position: relative;
+            min-height: 500px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .server-header {
+            border-bottom: 1px solid var(--server-border);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .server-title { font-size: 1.2rem; font-weight: bold; color: var(--accent-blue); }
+        .server-specs { font-size: 0.8rem; color: var(--text-dim); }
+
+        /* --- INTERNAL ZONES --- */
+        .zone {
+            background: rgba(255,255,255,0.05);
+            border: 1px dashed rgba(255,255,255,0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .zone-title {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            display: block;
+            font-weight: bold;
+        }
+
+        /* --- FILESYSTEM NODES --- */
+        .fs-node {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.3);
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            border-left: 3px solid transparent;
+        }
+
+        .fs-node.active { border-left-color: var(--accent-green); }
+        .fs-node.orphan { border-left-color: var(--accent-orange); color: var(--accent-orange); }
+        .fs-node.risk { border-left-color: var(--accent-red); }
+
+        .badge {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 3px;
+            background: #455A64;
+            color: #fff;
+        }
+        
+        /* --- CONNECTION LINES (SVG) --- */
+        .svg-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* --- EXTERNAL ENTITIES (LEFT/RIGHT) --- */
+        .entity-col {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .entity-card {
+            background: var(--card-bg);
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: relative;
+            z-index: 20;
+        }
+
+        .entity-header {
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .entity-sub { font-size: 0.8rem; color: #777; margin-top: 4px; }
+        
+        .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .dot-green { background: var(--accent-green); }
+        .dot-red { background: var(--accent-red); }
+        .dot-orange { background: var(--accent-orange); }
+
+        /* --- RISK ALERTS --- */
+        .risk-alert {
+            background: #FFEBEE;
+            border-left: 4px solid var(--accent-red);
+            color: #C62828;
+            padding: 10px;
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+        
+        .solution-box {
+            background: #E8F5E9;
+            border-left: 4px solid var(--accent-green);
+            color: #2E7D32;
+            padding: 10px;
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Server Anatomy: Tacha (The Hub)</h1>
+    <p>Detailed breakdown of services, filesystem paths, protocols, and identified risks for the central data hub.</p>
+
+    <div class="blueprint-container">
+
+        <!-- LEFT COLUMN: INPUTS -->
+        <div class="entity-col">
+            <div style="text-align:center; font-weight:bold; color:#555; margin-bottom:10px;">INCOMING DATA (PUSH)</div>
+            
+            <!-- SPSLUX -->
+            <div class="entity-card" id="input-spslux">
+                <div class="entity-header">
+                    <span><span class="status-dot dot-green"></span>SPSLUX</span>
+                    <span class="badge">SFTP</span>
+                </div>
+                <div class="entity-sub">Schedule: Hourly (:35)</div>
+                <div class="entity-sub">Source: Internal Sensors</div>
+            </div>
+
+            <!-- ASTA -->
+            <div class="entity-card" id="input-asta">
+                <div class="entity-header">
+                    <span><span class="status-dot dot-green"></span>ASTA</span>
+                    <span class="badge">SFTP</span>
+                </div>
+                <div class="entity-sub">Schedule: Daily (02:00)</div>
+                <div class="entity-sub">Source: Meteo Stations</div>
+            </div>
+
+            <!-- GEODESY -->
+            <div class="entity-card" id="input-geod">
+                <div class="entity-header">
+                    <span><span class="status-dot dot-green"></span>LXAA / OBGU</span>
+                    <span class="badge">SFTP</span>
+                </div>
+                <div class="entity-sub">Schedule: Daily (03:00/04:00)</div>
+                <div class="risk-alert">
+                    <strong>RISK (OBGU):</strong> Hardcoded creds in downloader script.
+                </div>
+            </div>
+
+            <!-- UKMET (ORPHAN) -->
+            <div class="entity-card" id="input-ukmet" style="opacity: 0.7;">
+                <div class="entity-header">
+                    <span><span class="status-dot dot-orange"></span>UKMET</span>
+                    <span class="badge">?</span>
+                </div>
+                <div class="entity-sub">Status: Unknown Source</div>
+                <div class="risk-alert" style="background:#FFF3E0; color:#EF6C00; border-color:#FFA726;">
+                    <strong>ORPHAN:</strong> Data lands here but is never picked up.
+                </div>
+            </div>
+        </div>
+
+        <!-- CENTER COLUMN: THE SERVER -->
+        <div class="server-chassis">
+            <div class="server-header">
+                <div class="server-title">tacha.fstc.uni.lu</div>
+                <div class="server-specs">Ubuntu Linux | 2 vCPU | 200GB Storage</div>
+            </div>
+
+            <!-- SERVICE 1: FILE SERVER -->
+            <div class="zone" style="border-color: var(--accent-blue);">
+                <span class="zone-title" style="color:var(--accent-blue);">Service 1: File Dropbox (ProFTPD)</span>
+                
+                <div class="fs-node active">
+                    <span>/home/ftp/spslux</span>
+                    <span class="badge">Active</span>
+                </div>
+                <div class="fs-node active">
+                    <span>/home/ftp/asta</span>
+                    <span class="badge">Active</span>
+                </div>
+                <div class="fs-node active">
+                    <span>/home/ftp/geod</span>
+                    <span class="badge">Active</span>
+                </div>
+                <div class="fs-node orphan">
+                    <span>/home/ftp/ukmet</span>
+                    <span class="badge" style="background:var(--accent-orange)">Unused</span>
+                </div>
+                
+                <div style="margin-top:10px; font-size:0.8rem; color:var(--text-dim);">
+                    <strong>Monitor:</strong> /home/uadmin/monitor_proftpd.sh<br>
+                    <strong>Users:</strong> uadmin, spslux, asta, gpsu
+                </div>
+            </div>
+
+            <!-- SERVICE 2: STREAMING -->
+            <div class="zone" style="border-color: var(--accent-green);">
+                <span class="zone-title" style="color:var(--accent-green);">Service 2: Real-Time Stream (NTRIP)</span>
+                
+                <div class="fs-node active" style="border-left-color:var(--accent-green);">
+                    <span>NTRIP Caster Service</span>
+                    <span class="badge">Port 2101</span>
+                </div>
+                
+                <div style="margin-top:10px; font-size:0.8rem; color:var(--text-dim);">
+                    <strong>User:</strong> ntripuser<br>
+                    <strong>Risk:</strong> Critical live service sharing resources with batch uploads.
+                </div>
+            </div>
+
+            <!-- SERVER WIDE RISKS -->
+            <div class="zone" style="border-color: var(--accent-red); background: rgba(239, 83, 80, 0.1);">
+                <span class="zone-title" style="color:var(--accent-red);">Critical Architecture Risks</span>
+                <div style="font-size:0.85rem;">
+                    1. <strong>Single Point of Failure:</strong> If disk fills up from batch uploads, live GPS stream dies.
+                    <br><br>
+                    2. <strong>Security:</strong> 'gpsu' account used by OBGU has password exposed in datacoll scripts.
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN: OUTPUTS -->
+        <div class="entity-col">
+            <div style="text-align:center; font-weight:bold; color:#555; margin-bottom:10px;">OUTGOING DATA (PULL/STREAM)</div>
+
+            <!-- DATACOLL -->
+            <div class="entity-card">
+                <div class="entity-header">
+                    <span><span class="status-dot dot-green"></span>DATACOLL</span>
+                    <span class="badge">SFTP Client</span>
+                </div>
+                <div class="entity-sub">Role: The Orchestrator</div>
+                <div class="entity-sub">Action: Pulls files from /home/ftp/*</div>
+                <div class="solution-box">
+                    <strong>SOLUTION:</strong> Ensure scripts use key-based auth, not passwords.
+                </div>
+            </div>
+
+            <!-- ROVERS -->
+            <div class="entity-card" style="margin-top: 100px;">
+                <div class="entity-header">
+                    <span><span class="status-dot dot-green"></span>FIELD ROVERS</span>
+                    <span class="badge">NTRIP Client</span>
+                </div>
+                <div class="entity-sub">Role: GPS Consumers</div>
+                <div class="entity-sub">Action: Consumes Real-time Stream</div>
+                <div class="solution-box">
+                    <strong>SOLUTION:</strong> Document who these users are (currently unknown).
+                </div>
+            </div>
+
+        </div>
+
+        <!-- SVG CONNECTORS -->
+        <svg class="svg-overlay">
+            <defs>
+                <marker id="arrow-blue" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#29B6F6" /></marker>
+                <marker id="arrow-green" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#66BB6A" /></marker>
+            </defs>
+            
+            <!-- Left to Center -->
+            <line x1="250" y1="100" x2="290" y2="100" stroke="#29B6F6" stroke-width="2" marker-end="url(#arrow-blue)" />
+            <line x1="250" y1="200" x2="290" y2="200" stroke="#29B6F6" stroke-width="2" marker-end="url(#arrow-blue)" />
+            <line x1="250" y1="300" x2="290" y2="300" stroke="#29B6F6" stroke-width="2" marker-end="url(#arrow-blue)" />
+            
+            <!-- Center to Right -->
+            <path d="M 850 250 C 900 250, 900 100, 950 100" stroke="#29B6F6" stroke-width="2" fill="none" marker-end="url(#arrow-blue)" />
+            <path d="M 850 450 C 900 450, 900 550, 950 550" stroke="#66BB6A" stroke-width="2" fill="none" marker-end="url(#arrow-green)" stroke-dasharray="5,5" />
+        </svg>
+
+    </div>
+
+</body>
+</html>

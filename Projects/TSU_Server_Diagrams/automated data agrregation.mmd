@@ -1,0 +1,70 @@
+graph TD
+                %% --- Visual Styling Definitions ---
+                classDef orchestrator fill:#43a047,stroke:#1b5e20,stroke-width:2px,color:#fff,rx:5,ry:5;
+                classDef hub fill:#1e88e5,stroke:#0d47a1,stroke-width:2px,color:#fff,rx:5,ry:5;
+                classDef storage fill:#8e24aa,stroke:#4a148c,stroke-width:2px,color:#fff,rx:5,ry:5;
+                classDef external fill:#ffcc80,stroke:#e65100,stroke-width:2px,color:#bf360c,rx:5,ry:5;
+                classDef internal fill:#b3e5fc,stroke:#0277bd,stroke-width:1px,color:#01579b,rx:5,ry:5;
+                classDef risk fill:#ffcdd2,stroke:#c62828,stroke-width:3px,stroke-dasharray: 5 5,color:#b71c1c,rx:5,ry:5;
+                classDef note fill:#fff9c4,stroke:#fbc02d,stroke-width:1px,color:#333,stroke-dasharray: 5 5;
+
+                %% --- 1. The Orchestrator (The Brain) ---
+                subgraph DATACOLL_ZONE [Orchestration Layer]
+                    direction TB
+                    Datacoll(<b>server: datacoll</b><br/>User: 'fetch'<br/>Role: Task Scheduler):::orchestrator
+                end
+
+                %% --- 2. The Hub (The Heart) ---
+                subgraph TACHA_ZONE [Internal Data Hub]
+                    direction TB
+                    Tacha(<b>server: tacha</b><br/>Role: File Landing Zone):::hub
+                    NTRIP(<b>NTRIP Service</b><br/>Role: Real-time Streamer):::hub
+                    
+                    %% Internal Sources
+                    SPSLUX[SPSLUX Sensors]:::internal
+                    ASTA[ASTA Meteo]:::internal
+                    LXAA[LXAA Receiver]:::internal
+                    OBGU[OBGU Receiver]:::internal
+                    
+                    %% Orphan
+                    UKMET["UKMET Directory<br>Status: Orphaned/Unknown"]:::note
+
+                    %% Hub Connections
+                    SPSLUX & ASTA & LXAA & OBGU -->|SFTP Push| Tacha
+                    UKMET -.->|?| Tacha
+                    SPSLUX -.->|Live Signal| NTRIP
+                    Rovers["Field Rovers"]:::internal
+                    NTRIP -.->|Broadcast| Rovers
+                end
+
+                %% --- 3. External Data Sources ---
+                subgraph EXTERNAL_ZONE [External Internet Sources]
+                    direction TB
+                    ANA[ANA Meteo<br/>data.ana.lu]:::external
+                    UNAVCO[UNAVCO GPS<br/>data-out.unavco.org]:::external
+                    PEA1[PEA1 Filer<br/>185.96.7.126]:::external
+                    
+                    %% The Risk
+                    KBG[<b>KBG Receiver</b><br/>10.186.112.10]:::risk
+                end
+
+                %% --- 4. The Destination ---
+                subgraph ARCHIVE_ZONE [Long-Term Storage]
+                    Archive[(<b>ftp.uni.lu</b><br/>The Central Archive)]:::storage
+                end
+
+                %% --- DATA FLOWS (THE PULL) ---
+                Tacha ==>|SFTP: Secure Pull| Datacoll
+                ANA -->|FTPS: Secure Pull| Datacoll
+                UNAVCO -->|HTTPS: Secure Pull| Datacoll
+                PEA1 -->|SFTP: Secure Pull| Datacoll
+                
+                %% Insecure Link
+                KBG -->|FTP: INSECURE / PLAINTEXT| Datacoll
+
+                %% --- DATA FLOWS (THE PUSH) ---
+                Datacoll ==>|SFTP: Daily Upload| Archive
+
+                %% Click Events (Optional interaction placeholders)
+                click Datacoll "The central worker that runs python scripts"
+                click Tacha "The central collection point"

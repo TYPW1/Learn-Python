@@ -1,0 +1,58 @@
+graph TD
+    %% Styling
+    classDef linux fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
+    classDef folder fill:#ffe0b2,stroke:#e65100,stroke-width:2px,stroke-dasharray: 5 5;
+    classDef script fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px;
+    classDef alert fill:#ffcdd2,stroke:#b71c1c,stroke-width:4px;
+    classDef service fill:#e040fb,stroke:#4a148c,stroke-width:2px,color:#fff;
+
+    subgraph Datacoll_Server ["Server: datacoll (The Orchestrator)"]
+        direction TB
+        style Datacoll_Server fill:#f5f5f5,stroke:#333,stroke-width:2px
+
+        subgraph User_Fetch ["User: fetch (Production)"]
+            Cron((Cron Job)):::script
+            Script_Dir["/home/fetch/bin/<br/>(*.py Scripts)"]:::folder
+            Config_Dir["/home/fetch/etc/<br/>(XML Configs)"]:::folder
+            
+            %% Security Risk Highlight
+            Keys["rsa4096keys.dat<br/>(Sensitive/Unclear Use)"]:::alert
+        end
+
+        subgraph User_Devel ["User: devel (Development)"]
+            Devel_Bin["/home/devel/bin/<br/>(Test Scripts)"]:::folder
+        end
+
+        Cron -->|Triggers| Script_Dir
+        Script_Dir -.->|Reads Creds| Config_Dir
+        Script_Dir -.->|Uses?| Keys
+    end
+
+    subgraph Tacha_Server ["Server: tacha (The Data Hub)"]
+        direction TB
+        style Tacha_Server fill:#f5f5f5,stroke:#333,stroke-width:2px
+
+        subgraph Roles ["Active Services"]
+            SFTP_Service(ProFTPD Server):::service
+            NTRIP_Service(NTRIP Caster<br/>Real-Time Stream):::service
+        end
+
+        subgraph Landing_Zones ["Storage: /home/ftp/"]
+            Dir_SPSLUX["/spslux"]:::folder
+            Dir_GPSU["/gpsu"]:::folder
+            Dir_ASTA["/asta"]:::folder
+            Dir_UKMET["/ukmet<br/>(Orphaned?)"]:::alert
+        end
+
+        SFTP_Service --> Landing_Zones
+        
+        %% Monitoring
+        Monitor["/home/uadmin/<br/>monitor_proftpd.sh"]:::script
+        Monitor -.->|Checks| SFTP_Service
+    end
+
+    %% Interactions
+    Script_Dir == SFTP Connection ==> SFTP_Service
+    
+    %% Note on Devel
+    Devel_Bin -.->|No Defined Path to Production| Script_Dir
