@@ -33,8 +33,13 @@ canvas.grid(row=0, column=0)
 # Load images
 card_front_img = PhotoImage(file="images/card_front.png")
 card_back_img = PhotoImage(file="images/card_back.png")
+right_img = PhotoImage(file="images/right.png")
+wrong_img = PhotoImage(file="images/wrong.png")
 card_background = canvas.create_image(400, 263, image=card_front_img)
-
+right_button = Button(image=right_img, highlightthickness=0, command=flip_card)
+right_button.grid(row=1, column=1)
+wrong_button = Button(image=wrong_img, highlightthickness=0, command=flip_card)
+wrong_button.grid(row=1, column=0)
 flip_card()
 
 
