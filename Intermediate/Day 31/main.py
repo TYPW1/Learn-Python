@@ -28,7 +28,7 @@ window.config(padx=50, pady=50, bg="#B1DDC6")
 
 # Canvas for flashcards
 canvas = Canvas(width=800, height=526, bg="#B1DDC6", highlightthickness=0)  
-canvas.grid(row=0, column=0)  
+canvas.grid(row=0, column=0, columnspan=2)  
 
 # Load images
 card_front_img = PhotoImage(file="images/card_front.png")
@@ -40,7 +40,10 @@ right_button = Button(image=right_img, highlightthickness=0, command=flip_card)
 right_button.grid(row=1, column=1)
 wrong_button = Button(image=wrong_img, highlightthickness=0, command=flip_card)
 wrong_button.grid(row=1, column=0)
-flip_card()
+
+# write text on the card
+canvas.create_text(400, 150, text="Title", font=("Ariel", 40, "italic"))
+canvas.create_text(400, 263, text="Word", font=("Ariel", 60, "bold"))
 
 
 
