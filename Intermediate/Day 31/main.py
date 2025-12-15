@@ -4,6 +4,7 @@ from tkinter import *
 from tkinter import messagebox
 import random
 import time
+import pandas as pd
 
 # display card front and back
 def display_card_front():
@@ -11,14 +12,26 @@ def display_card_front():
 def display_card_back():
     canvas.itemconfig(card_background, image=card_back_img)
 
+df = pd.read_csv('data/french_words.csv')  
+words_list = df.to_dict(orient='records')
+current_card = {}
+
+def next_card():
+    global current_card, flip_timer
+    window.after_cancel(flip_timer)  # Cancel previous timer
+    current_card = random.choice(words_list)
+    print(current_card['French'])
+    canvas.itemconfig(card_title, text="French", fill="black")
+    canvas.itemconfig(card_word, text=current_card['French'], fill="black")
+    canvas.itemconfig(card_background, image=card_front_img)
+    display_card_front()
+    flip_timer = window.after(3000, flip_card)
 
 def flip_card():
-    time.sleep(3)
+    canvas.itemconfig(card_title, text="English", fill="white")
+    canvas.itemconfig(card_word, text=current_card['English'], fill="white")
+    canvas.itemconfig(card_background, image=card_back_img)
     display_card_back()
-    # After displaying the back, wait another 3 seconds and show the front again
-    time.sleep(3)
-    display_card_front()
-    
     
 
 # Main window setup
@@ -26,6 +39,7 @@ window = Tk()
 window.title("Flashy - Flashcard Learning App")
 window.config(padx=50, pady=50, bg="#B1DDC6")
 
+flip_timer = window.after(3000, flip_card)  # Schedule flip_card to run after 3 seconds
 # Canvas for flashcards
 canvas = Canvas(width=800, height=526, bg="#B1DDC6", highlightthickness=0)  
 canvas.grid(row=0, column=0, columnspan=2)  
@@ -36,15 +50,17 @@ card_back_img = PhotoImage(file="images/card_back.png")
 right_img = PhotoImage(file="images/right.png")
 wrong_img = PhotoImage(file="images/wrong.png")
 card_background = canvas.create_image(400, 263, image=card_front_img)
-right_button = Button(image=right_img, highlightthickness=0, command=flip_card)
+
+right_button = Button(image=right_img, highlightthickness=0, command=next_card)
 right_button.grid(row=1, column=1)
-wrong_button = Button(image=wrong_img, highlightthickness=0, command=flip_card)
+wrong_button = Button(image=wrong_img, highlightthickness=0, command=next_card)
 wrong_button.grid(row=1, column=0)
 
 # write text on the card
-canvas.create_text(400, 150, text="Title", font=("Ariel", 40, "italic"))
-canvas.create_text(400, 263, text="Word", font=("Ariel", 60, "bold"))
+card_title = canvas.create_text(400, 150, text="", font=("Ariel", 40, "italic"))
+card_word = canvas.create_text(400, 263, text="", font=("Ariel", 60, "bold"))
 
+next_card()
 
 
 window.mainloop()
