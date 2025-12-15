@@ -1,5 +1,5 @@
 # main.py
-import asyncio # Essential for the web!
+import asyncio # Essential for the web! # pygbag main.py to run on the web browser
 import pygame
 import random
 
