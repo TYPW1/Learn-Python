@@ -11,21 +11,32 @@ def display_card_front():
     canvas.itemconfig(card_background, image=card_front_img)
 def display_card_back():
     canvas.itemconfig(card_background, image=card_back_img)
+try:
+    df = pd.read_csv('data/words_to_learn.csv')
+except FileNotFoundError:
+    original_data = pd.read_csv('data/french_words.csv')
+    to_learn = original_data.to_dict(orient='records')
+else:
+    to_learn = df.to_dict(orient='records')
 
-df = pd.read_csv('data/french_words.csv')  
-words_list = df.to_dict(orient='records')
-current_card = {}
 
 def next_card():
     global current_card, flip_timer
     window.after_cancel(flip_timer)  # Cancel previous timer
-    current_card = random.choice(words_list)
+    current_card = random.choice(to_learn)
     print(current_card['French'])
     canvas.itemconfig(card_title, text="French", fill="black")
     canvas.itemconfig(card_word, text=current_card['French'], fill="black")
     canvas.itemconfig(card_background, image=card_front_img)
     display_card_front()
     flip_timer = window.after(3000, flip_card)
+
+
+def is_known():
+    to_learn.remove(current_card)
+    data = pd.DataFrame(to_learn)
+    data.to_csv('data/words_to_learn.csv', index=False)
+    next_card()
 
 def flip_card():
     canvas.itemconfig(card_title, text="English", fill="white")
@@ -53,7 +64,7 @@ card_background = canvas.create_image(400, 263, image=card_front_img)
 
 right_button = Button(image=right_img, highlightthickness=0, command=next_card)
 right_button.grid(row=1, column=1)
-wrong_button = Button(image=wrong_img, highlightthickness=0, command=next_card)
+wrong_button = Button(image=wrong_img, highlightthickness=0, command=is_known)
 wrong_button.grid(row=1, column=0)
 
 # write text on the card
