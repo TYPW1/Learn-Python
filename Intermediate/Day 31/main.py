@@ -14,7 +14,7 @@ def display_card_back():
 try:
     df = pd.read_csv('data/words_to_learn.csv')
 except FileNotFoundError:
-    original_data = pd.read_csv('data/french_words.csv')
+    # original_data = pd.read_csv('data/french_words.csv')
     to_learn = original_data.to_dict(orient='records')
 else:
     to_learn = df.to_dict(orient='records')
@@ -52,8 +52,8 @@ window.config(padx=50, pady=50, bg="#B1DDC6")
 
 flip_timer = window.after(3000, flip_card)  # Schedule flip_card to run after 3 seconds
 # Canvas for flashcards
-canvas = Canvas(width=800, height=526, bg="#B1DDC6", highlightthickness=0)  
-canvas.grid(row=0, column=0, columnspan=2)  
+canvas = Canvas(width=800, height=526, bg="#B1DDC6", highlightthickness=0)
+canvas.grid(row=0, column=0, columnspan=2)
 
 # Load images
 card_front_img = PhotoImage(file="images/card_front.png")
