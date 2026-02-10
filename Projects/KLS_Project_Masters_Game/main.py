@@ -64,7 +64,7 @@ class Player:
     
     def jump(self):
         if not self.is_jumping:
-            self.vel_y = -18  # Jump Power
+            self.vel_y = -25  # Jump Power
             self.is_jumping = True
             
     def update(self):
